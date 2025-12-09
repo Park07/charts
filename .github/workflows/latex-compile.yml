@@ -21,7 +21,7 @@ jobs:
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: thesis_complete.tex
+          root_file: thesis.tex
           latexmk_use_xelatex: false
           latexmk_shell_escape: true
 
