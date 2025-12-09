@@ -1,0 +1,40 @@
+# .github/workflows/latex-compile.yml
+# Auto-compiles LaTeX to PDF on every push
+
+name: Compile LaTeX to PDF
+
+on:
+  push:
+    paths:
+      - '**.tex'
+      - 'figures/**'
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: thesis_complete.tex
+          latexmk_use_xelatex: false
+          latexmk_shell_escape: true
+
+      - name: Upload PDF as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: thesis-pdf
+          path: thesis_complete.pdf
+
+      - name: Commit compiled PDF
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add thesis_complete.pdf
+          git diff --staged --quiet || git commit -m "Auto-compile: Update PDF"
+          git push
