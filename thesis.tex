@@ -412,7 +412,7 @@ CECI exhibits the opposite pattern, demonstrating negative scalability ($S_p < 1
 \label{fig:rq1-speedup-curves}
 \end{figure}
 
-This section analyses scaling efficiency, defined as the ratio of throughput at thread count $t$ to throughput at 1 thread, for standard 16-vertex workloads.
+This section analyses scaling efficiency, defined as the ratio of throughput at thread count $t$ to throughput at 1 thread, for standard 16-vertex workloads. Figure~\ref{fig:rq1-speedup-curves} presents the scaling curves for all four datasets, enabling direct comparison of algorithmic behaviour across diverse graph topologies.
 
 VF3 demonstrates consistent scalability across sparse datasets, achieving a speedup of approximately 25x at 64 threads on Enron and 12x on DBLP. The scaling curve remains positive throughout, indicating effective load balancing across workers.
 
@@ -475,7 +475,7 @@ This inversion suggests that increased graph density facilitates traversal-based
 \label{fig:rq2-scale}
 \end{figure}
 
-This experiment isolates the impact of graph topology by comparing performance across datasets of increasing scale and varying structural properties using sparse 16-vertex queries.
+This experiment isolates the impact of graph topology by comparing performance across datasets of increasing scale and varying structural properties using sparse 16-vertex queries. Figure~\ref{fig:rq2-scale} visualises this relationship, plotting EPS against graph size to reveal how each algorithm responds to increasing scale.
 
 The RoadNet dataset represents a planar, mesh-like topology characterised by a lack of high-degree nodes. On this dataset, the performance gap is substantial: CECI achieves approximately 3 million EPS, whereas VF3 and SLF exhibit near-zero performance (below $10^3$ EPS).
 
