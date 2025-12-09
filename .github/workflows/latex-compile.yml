@@ -1,6 +1,6 @@
 # .github/workflows/latex-compile.yml
 # Auto-compiles LaTeX to PDF on every push
-
+# edit
 name: Compile LaTeX to PDF
 
 on:
