@@ -29,12 +29,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: thesis-pdf
-          path: thesis_complete.pdf
+          path: thesis.pdf
 
       - name: Commit compiled PDF
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add thesis_complete.pdf
+          git add thesis.pdf
           git diff --staged --quiet || git commit -m "Auto-compile: Update PDF"
           git push
