@@ -893,7 +893,7 @@ Barabási-Albert & ba\_750k & 749,775 & 30.0 & Scale-free (hubs) \\
 Four query types were evaluated: sparse 8-vertex, dense 8-vertex, sparse 16-vertex, and dense 16-vertex patterns. This mirrors the real-world experimental configuration.
 
 \paragraph{Experimental Parameters.}
-All experiments used identical parameters to the real-world evaluation: $K$-limit of 500 million embeddings, timeout of 120 seconds, and 64 threads. This configuration enables direct comparison between synthetic and real-world results. Note that algorithms reaching the $K$-limit terminate early, while those failing to reach it run for the full timeout duration; the reported EPS thus reflects sustained throughput under uniform time constraints rather than completion time for equivalent workloads.
+Synthetic experiments used a $K$-limit of 500 million embeddings, timeout of 120 seconds, and 64 threads. Note that algorithms reaching the $K$-limit terminate early, while those failing to reach it run for the full timeout duration; the reported EPS thus reflects sustained throughput under uniform time constraints rather than completion time for equivalent workloads.
 
 %------------------------------------------------------------------------------
 \subsection{RQ1: Algorithm Performance on Synthetic Graphs}
@@ -983,7 +983,7 @@ ba\_750k (750K edges) & 35,653,158 & 131,180 & 12 \\
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{synthetic_rq3_pruning.png}  % CORRECT
+\includegraphics[width=0.85\textwidth]{synthetic_rq3_pruning.png}
 \caption{RQ3 Validation: Pruning (VF3PDL) vs parallel enumeration (CECI) on Erdős-Rényi graphs. The 5-order-of-magnitude performance gap demonstrates that pruning strategies fail without exploitable structure.}
 \label{fig:synthetic-rq3}
 \end{figure}
@@ -1076,7 +1076,7 @@ During the course of this evaluation, we encountered significant reproducibility
 \label{sec:graphmini}
 %------------------------------------------------------------------------------
 
-As mentioned in Part B of this thesis, I had encountered significant issues with GraphMini which was not mentioned by the authors. The algorithm was unable to handle any graph inputs with more than 4 vertices and I have raised this issue on Github. The results I have collected so far are:
+As mentioned in Part B of this thesis, we encountered significant issues with GraphMini which were not mentioned by the authors. The algorithm was unable to handle any graph inputs with more than 4 vertices and we have raised this issue on GitHub. The results collected so far are shown in Figures~\ref{fig:graphmini-dense1} and~\ref{fig:graphmini-dense2}.
 
 \begin{figure}[htbp]
 \centering
@@ -1092,7 +1092,7 @@ As mentioned in Part B of this thesis, I had encountered significant issues with
 \label{fig:graphmini-dense2}
 \end{figure}
 
-It's replicable but not reproducible.
+The implementation is replicable but not reproducible.
 
 \begin{figure}[htbp]
 \centering
@@ -1217,7 +1217,7 @@ The benchmarking framework and synthetic validation methodology established here
 
 \subsubsection{Contribution 1: Quantifying the Evaluation Gap}
 
-We demonstrated that 86\% of possible cross-algorithm comparisons are missing from published literature (Section~1.2). By systematically comparing CECI, VF3PDL, and SLF under controlled conditions, this thesis fills critical gaps in the evaluation landscape, enabling evidence-based algorithm selection for the first time.
+We demonstrated that 86\% of possible cross-algorithm comparisons are missing from the published literature (Section~1.2). By systematically comparing CECI, VF3PDL, and SLF under controlled conditions, this thesis fills critical gaps in the evaluation landscape, enabling evidence-based algorithm selection for the first time.
 
 \subsubsection{Contribution 2: The Pruning-Parallelism Inversion Principle}
 
@@ -1323,7 +1323,7 @@ Our structure-dependent findings suggest that runtime algorithm selection based 
 
 \subsubsection{Parallel Index Construction}
 
-CECI's poor scaling stems from sequential index construction. Parallelising this phase---perhaps through speculative construction or hierarchical indexing---could preserve CECI's pruning effectiveness while achieving scalability. Our Amdahl's Law analysis provides a quantitative target: reducing sequential fraction from 99\% to 50\% would increase theoretical speedup from 1.01$\times$ to 1.98$\times$ at 64 threads.
+CECI's poor scaling stems from sequential index construction. Parallelising this phase---perhaps through speculative construction or hierarchical indexing---could preserve CECI's pruning effectiveness while achieving scalability. Our Amdahl's Law analysis provides a quantitative target: reducing the sequential fraction from 99\% to 50\% would increase theoretical speedup from 1.01$\times$ to 1.98$\times$ at 64 threads.
 
 \subsubsection{Extended Validation}
 
@@ -1382,65 +1382,59 @@ We release our benchmarking framework and experimental scripts to enable reprodu
 
 \bibitem{ref18} R. Chen, Y. Huang, B. Choi, and H. V. Jagadish, ``Towards BFS-based subgraph matching in large graphs,'' \textit{PVLDB}, vol. 14, no. 11, pp. 1845--1857, Jul. 2021. [Online]. Available: \url{https://www.vldb.org/pvldb/vol14/p1845-chen.pdf}. [Accessed: 21 Mar. 2025].
 
-\bibitem{ref19} B. Wu, C. Yang, C. Chen, Z. Chen, and B. Cui, ``Graph Database Meets Vector Database: A Practical Study of Storing Graphs in Vector Databases,'' \textit{arXiv:2312.10486 [cs.DB]}, Dec. 2023. [Online]. Available: \url{https://arxiv.org/pdf/2312.10486}. [Accessed: 22 Mar. 2025].
+\bibitem{ref19} S. Kim, W. Lee, and J. Lee, ``Subgraph Isomorphism Algorithms: A Survey,'' \textit{arXiv:2203.06913 [cs.DB]}, Mar. 2022. [Online]. Available: \url{https://arxiv.org/abs/2203.06913}. [Accessed: 24 Mar. 2025].
 
-\bibitem{ref20} S. Kim, W. Lee, and J. Lee, ``Subgraph Isomorphism Algorithms: A Survey,'' \textit{arXiv:2203.06913 [cs.DB]}, Mar. 2022. [Online]. Available: \url{https://arxiv.org/abs/2203.06913}. [Accessed: 24 Mar. 2025].
+\bibitem{ref20} H. Zhang and J. C. S. Lui, ``TurboFlux: A Fast Continuous Subgraph Matching System for Evolving Networks,'' in \textit{Proc. ACM SIGMOD}, May 2017, pp. 739--754. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3035918.3056445}. [Accessed: 25 Mar. 2025].
 
-\bibitem{ref21} H. Zhang and J. C. S. Lui, ``TurboFlux: A Fast Continuous Subgraph Matching System for Evolving Networks,'' in \textit{Proc. ACM SIGMOD}, May 2017, pp. 739--754. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3035918.3056445}. [Accessed: 25 Mar. 2025].
+\bibitem{ref21} M. Han, K. Lee, J. Lee, J. Kim, Y. E. Ioannidis, and J.-H. Lee, ``Efficient Subgraph Matching: Harmonizing Dynamic Programming, Adaptive Matching Order, and Failing Set,'' in \textit{Proc. ACM SIGMOD}, Jun. 2018, pp. 119--134. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3183713.3196917}. [Accessed: 27 Mar. 2025].
 
-\bibitem{ref22} M. Han, K. Lee, J. Lee, J. Kim, Y. E. Ioannidis, and J.-H. Lee, ``Efficient Subgraph Matching: Harmonizing Dynamic Programming, Adaptive Matching Order, and Failing Set,'' in \textit{Proc. ACM SIGMOD}, Jun. 2018, pp. 119--134. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3183713.3196917}. [Accessed: 27 Mar. 2025].
+\bibitem{ref22} M. Liu, Y. Fang, R. Cheng, X. Xiao, Y. Li, Z. Chen, and Z. Zhang, ``Efficient Subgraph Matching over Heterogeneous Graphs,'' \textit{arXiv:2401.17018 [cs.DB]}, Jan. 2024. [Online]. Available: \url{https://arxiv.org/pdf/2401.17018}. [Accessed: 1 Apr. 2025].
 
-\bibitem{ref23} S. Kim, W. Lee, and J. Lee, ``Subgraph Isomorphism Algorithms: A Survey,'' \textit{arXiv:2203.06913 [cs.DB]}, Mar. 2022. [Online]. Available: \url{https://arxiv.org/pdf/2203.06913}. [Accessed: 28 Mar. 2025].
+\bibitem{ref23} G. Yu, X. Zhu, C. Zhang, and S. Yang, ``A Novel Parallel Subgraph Matching Algorithm Based on Feature Structure Index,'' in \textit{2023 IEEE SmartCloud}, Nov. 2023, pp. 313--320. [Online]. Available: \url{https://ieeexplore.ieee.org/document/10046118}. [Accessed: 2 Apr. 2025].
 
-\bibitem{ref24} H. T. Nguyen, H. He, and A. T.-S. Lim, ``Indexing Large Dynamic Graphs for Approximate Subgraph Matching,'' in \textit{DASFAA}, 2015, pp. 31--46. [Online]. Available: \url{https://www.comp.nus.edu.sg/~hebs/pub/hanguyen_dasfaa15.pdf}. [Accessed: 30 Mar. 2025].
+\bibitem{ref24} X. Sun and Q. Luo, ``Efficient GPU-Accelerated Subgraph Matching,'' in \textit{Proc. ACM Management of Data (SIGMOD '23)}, vol. 1, no. 2, Article 181, Jun. 2023. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3589326}. [Accessed: 4 Apr. 2025].
 
-\bibitem{ref25} M. Liu, Y. Fang, R. Cheng, X. Xiao, Y. Li, Z. Chen, and Z. Zhang, ``Efficient Subgraph Matching over Heterogeneous Graphs,'' \textit{arXiv:2401.17018 [cs.DB]}, Jan. 2024. [Online]. Available: \url{https://arxiv.org/pdf/2401.17018}. [Accessed: 1 Apr. 2025].
+\bibitem{ref25} M. M. Islam and R. A. Baeza-Yates, ``A faster algorithm for approximate subgraph matching in large graphs,'' \textit{PLoS ONE}, vol. 8, no. 10, Oct. 2013, e76911. [Online]. Available: \url{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0076911}. [Accessed: 6 Apr. 2025].
 
-\bibitem{ref26} G. Yu, X. Zhu, C. Zhang, and S. Yang, ``A Novel Parallel Subgraph Matching Algorithm Based on Feature Structure Index,'' in \textit{2023 IEEE SmartCloud}, Nov. 2023, pp. 313--320. [Online]. Available: \url{https://ieeexplore.ieee.org/document/10046118}. [Accessed: 2 Apr. 2025].
+\bibitem{ref26} A. Jain, ``A Survey on Parallel Subgraph Isomorphism Algorithms,'' M.S. thesis, Univ. Georgia, Athens, GA, 2014. [Online]. Available: \url{https://getd.libs.uga.edu/pdfs/jain_ayushi_201408_ms.pdf}. [Accessed: 7 Apr. 2025].
 
-\bibitem{ref27} X. Sun and Q. Luo, ``Efficient GPU-Accelerated Subgraph Matching,'' in \textit{Proc. ACM Management of Data (SIGMOD '23)}, vol. 1, no. 2, Article 181, Jun. 2023. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3589326}. [Accessed: 4 Apr. 2025].
+\bibitem{ref27} P. Zhao, J. X. Yu, and J. Han, ``Graph indexing for subgraph matching in large graphs,'' in \textit{Proc. ACM SIGKDD}, Aug. 2011, pp. 914--922. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/2588555.2588557}. [Accessed: 8 Apr. 2025].
 
-\bibitem{ref28} M. M. Islam and R. A. Baeza-Yates, ``A faster algorithm for approximate subgraph matching in large graphs,'' \textit{PLoS ONE}, vol. 8, no. 10, Oct. 2013, e76911. [Online]. Available: \url{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0076911}. [Accessed: 6 Apr. 2025].
+\bibitem{ref28} H. Jamjoom, ``A Scalable Parallel Algorithm For Subgraph Isomorphism,'' M.S. thesis, Univ. Georgia, Athens, GA, 2011. [Online]. Available: \url{https://openscholar.uga.edu/record/11086}. [Accessed: 9 Apr. 2025].
 
-\bibitem{ref29} A. Jain, ``A Survey on Parallel Subgraph Isomorphism Algorithms,'' M.S. thesis, Univ. Georgia, Athens, GA, 2014. [Online]. Available: \url{https://getd.libs.uga.edu/pdfs/jain_ayushi_201408_ms.pdf}. [Accessed: 7 Apr. 2025].
+\bibitem{ref29} H. Chen, J. X. Yu, K. P. Lam, H. Cheng, and P. S. Yu, ``Accelerating Parallel Subgraph Matching on Shared-Memory Platforms,'' in \textit{2017 IEEE ICDE}, Apr. 2017, pp. 737--748. [Online]. Available: \url{https://ieeexplore.ieee.org/document/7965089}. [Accessed: 11 Apr. 2025].
 
-\bibitem{ref30} P. Zhao, J. X. Yu, and J. Han, ``Graph indexing for subgraph matching in large graphs,'' in \textit{Proc. ACM SIGKDD}, Aug. 2011, pp. 914--922. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/2588555.2588557}. [Accessed: 8 Apr. 2025].
+\bibitem{ref30} S. Hong, J. Lee, S. Kim, and W. S. Han, ``Efficient Subgraph Matching: Harmonizing Dynamic Programming, Adaptive Matching Order, and Failing Set,'' in \textit{Proc. ACM SIGMOD}, Jun. 2020, pp. 119--134. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3318464.3380581}. [Accessed: 12 Apr. 2025].
 
-\bibitem{ref31} H. Jamjoom, ``A Scalable Parallel Algorithm For Subgraph Isomorphism,'' M.S. thesis, Univ. Georgia, Athens, GA, 2011. [Online]. Available: \url{https://openscholar.uga.edu/record/11086}. [Accessed: 9 Apr. 2025].
+\bibitem{ref31} V. Carletti, P. Foggia, A. Saggese, and M. Vento, ``Introducing VF3: A New Algorithm for Subgraph Isomorphism,'' \textit{LNCS}, vol. 10245, pp. 186--198, 2017. [Online]. Available: \url{https://www.researchgate.net/publication/317203795}. [Accessed: 14 Apr. 2025].
 
-\bibitem{ref32} H. Chen, J. X. Yu, K. P. Lam, H. Cheng, and P. S. Yu, ``Accelerating Parallel Subgraph Matching on Shared-Memory Platforms,'' in \textit{2017 IEEE ICDE}, Apr. 2017, pp. 737--748. [Online]. Available: \url{https://ieeexplore.ieee.org/document/7965089}. [Accessed: 11 Apr. 2025].
+\bibitem{ref32} A. Ar{\i}soy and C. Aykanat, ``Parallel Subgraph Isomorphism Algorithm Using Hypergraph Models,'' \textit{IEEE Trans. Parallel Distrib. Syst.}, vol. 31, no. 1, pp. 134--148, Jan. 2020. [Online]. Available: \url{https://ieeexplore.ieee.org/abstract/document/8750958}. [Accessed: 15 Apr. 2025].
 
-\bibitem{ref33} S. Hong, J. Lee, S. Kim, and W. S. Han, ``Efficient Subgraph Matching: Harmonizing Dynamic Programming, Adaptive Matching Order, and Failing Set,'' in \textit{Proc. ACM SIGMOD}, Jun. 2020, pp. 119--134. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3318464.3380581}. [Accessed: 12 Apr. 2025].
+\bibitem{ref33} Z. Zhang, J. K. Li, and Z. Wang, ``A Parallel Algorithm for Subgraph Isomorphism,'' in \textit{2019 IEEE ISPA/BDCloud/SocialCom/SustainCom}, Dec. 2019, pp. 803--810. [Online]. Available: \url{https://www.researchgate.net/publication/333675073}. [Accessed: 16 Apr. 2025].
 
-\bibitem{ref34} V. Carletti, P. Foggia, A. Saggese, and M. Vento, ``Introducing VF3: A New Algorithm for Subgraph Isomorphism,'' \textit{LNCS}, vol. 10245, pp. 186--198, 2017. [Online]. Available: \url{https://www.researchgate.net/publication/317203795}. [Accessed: 14 Apr. 2025].
+\bibitem{ref34} D. Fierro, F. D. Igual, and M. F. P. S\'{e}culi, ``GPU-Based Parallel Algorithms for Subgraph Isomorphism,'' \textit{LNCS}, vol. 12706, pp. 321--336, 2021. [Online]. Available: \url{https://dl.acm.org/doi/10.1007/978-3-030-73973-7_24}. [Accessed: 18 Apr. 2025].
 
-\bibitem{ref35} A. Ar{\i}soy and C. Aykanat, ``Parallel Subgraph Isomorphism Algorithm Using Hypergraph Models,'' \textit{IEEE Trans. Parallel Distrib. Syst.}, vol. 31, no. 1, pp. 134--148, Jan. 2020. [Online]. Available: \url{https://ieeexplore.ieee.org/abstract/document/8750958}. [Accessed: 15 Apr. 2025].
+\bibitem{ref35} M. Yang, K. Lei, X. Yan, H. Wu, J. Tang, and J. Li, ``Distributed Graph Pattern Matching: A Communication Perspective,'' \textit{arXiv:2403.01050 [cs.DB]}, Mar. 2024. [Online]. Available: \url{https://arxiv.org/abs/2403.01050}. [Accessed: 19 Apr. 2025].
 
-\bibitem{ref36} Z. Zhang, J. K. Li, and Z. Wang, ``A Parallel Algorithm for Subgraph Isomorphism,'' in \textit{2019 IEEE ISPA/BDCloud/SocialCom/SustainCom}, Dec. 2019, pp. 803--810. [Online]. Available: \url{https://www.researchgate.net/publication/333675073}. [Accessed: 16 Apr. 2025].
+\bibitem{ref36} B. Liu, S. Wang, J. Li, F. Zhuang, and L. Cao, ``Graph Representation Learning for Subgraph Isomorphism,'' \textit{Information Sciences}, vol. 610, pp. 648--665, Jun. 2022. [Online]. Available: \url{https://www.sciencedirect.com/science/article/pii/S0020025522015286}. [Accessed: 20 Apr. 2025].
 
-\bibitem{ref37} D. Fierro, F. D. Igual, and M. F. P. S\'{e}culi, ``GPU-Based Parallel Algorithms for Subgraph Isomorphism,'' \textit{LNCS}, vol. 12706, pp. 321--336, 2021. [Online]. Available: \url{https://dl.acm.org/doi/10.1007/978-3-030-73973-7_24}. [Accessed: 18 Apr. 2025].
+\bibitem{ref37} Z. Zhang, W. Zhang, S. Wang, J. Li, and J. Pei, ``Fuzzy Constrained Graph Pattern Matching in Dynamic Interaction Networks,'' \textit{Data Intelligence}, vol. 4, no. 3, pp. 599--623, Summer 2022. [Online]. Available: \url{https://direct.mit.edu/dint/article/4/3/599/112547}. [Accessed: 21 Apr. 2025].
 
-\bibitem{ref38} M. Yang, K. Lei, X. Yan, H. Wu, J. Tang, and J. Li, ``Distributed Graph Pattern Matching: A Communication Perspective,'' \textit{arXiv:2403.01050 [cs.DB]}, Mar. 2024. [Online]. Available: \url{https://arxiv.org/abs/2403.01050}. [Accessed: 19 Apr. 2025].
+\bibitem{ref38} M. Dindoost, O. A. Rodriguez, S. Bagchi, P. Pauliuchenka, Z. Du, and D. A. Bader, ``VF2-PS: Parallel and Scalable Subgraph Monomorphism in Arachne,'' in \textit{2024 IEEE HPEC}, Sep. 2024. [Online]. Available: \url{https://ieeexplore.ieee.org/document/10938454}. [Accessed: 23 Apr. 2025].
 
-\bibitem{ref39} B. Liu, S. Wang, J. Li, F. Zhuang, and L. Cao, ``Graph Representation Learning for Subgraph Isomorphism,'' \textit{Information Sciences}, vol. 610, pp. 648--665, Jun. 2022. [Online]. Available: \url{https://www.sciencedirect.com/science/article/pii/S0020025522015286}. [Accessed: 20 Apr. 2025].
+\bibitem{ref39} M. Dindoost, O. A. Rodriguez, S. Bagchi, P. Pauliuchenka, Z. Du, and D. A. Bader, ``VF2-PS: Parallel and Scalable Subgraph Monomorphism in Arachne,'' Poster, \textit{2024 IEEE HPEC}, Sep. 2024. [Online]. Available: \url{https://ieeexplore.ieee.org/document/10938524}. [Accessed: 24 Apr. 2025].
 
-\bibitem{ref40} Z. Zhang, W. Zhang, S. Wang, J. Li, and J. Pei, ``Fuzzy Constrained Graph Pattern Matching in Dynamic Interaction Networks,'' \textit{Data Intelligence}, vol. 4, no. 3, pp. 599--623, Summer 2022. [Online]. Available: \url{https://direct.mit.edu/dint/article/4/3/599/112547}. [Accessed: 21 Apr. 2025].
+\bibitem{ref40} S. Bai, T. Wang, A. Hassani, S. Jadbabaie, and P. Zhao, ``Unveiling the Potential of Graph Processing Units: Challenges and Opportunities,'' in \textit{Proc. ACM SIGMOD '24}, Jun. 2024, Article 39. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3654964}. [Accessed: 25 Apr. 2025].
 
-\bibitem{ref41} M. Dindoost, O. A. Rodriguez, S. Bagchi, P. Pauliuchenka, Z. Du, and D. A. Bader, ``VF2-PS: Parallel and Scalable Subgraph Monomorphism in Arachne,'' in \textit{2024 IEEE HPEC}, Sep. 2024. [Online]. Available: \url{https://ieeexplore.ieee.org/document/10938454}. [Accessed: 23 Apr. 2025].
+\bibitem{ref41} A. Salle, F. Porto, and P. Valduriez, ``Parallel Subgraph Matching on Multicore Systems,'' in \textit{Proc. SSDBM '18}, Jul. 2018, Article 18. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3469379.3469383}. [Accessed: 26 Apr. 2025].
 
-\bibitem{ref42} M. Dindoost, O. A. Rodriguez, S. Bagchi, P. Pauliuchenka, Z. Du, and D. A. Bader, ``VF2-PS: Parallel and Scalable Subgraph Monomorphism in Arachne,'' Poster, \textit{2024 IEEE HPEC}, Sep. 2024. [Online]. Available: \url{https://ieeexplore.ieee.org/document/10938524}. [Accessed: 24 Apr. 2025].
+\bibitem{ref42} P. Lindenberger, A. Unagar, K. Amara, and C.-I. Hu, ``VF2 and Glasgow: Parallel Induced Subgraph Isomorphism Solvers,'' Report, ETH Z\"{u}rich, 2019. [Online]. Available: \url{https://aunagar.github.io/media/subgraph_isomorphism_report.pdf}. [Accessed: 27 Apr. 2025].
 
-\bibitem{ref43} S. Bai, T. Wang, A. Hassani, S. Jadbabaie, and P. Zhao, ``Unveiling the Potential of Graph Processing Units: Challenges and Opportunities,'' in \textit{Proc. ACM SIGMOD '24}, Jun. 2024, Article 39. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3654964}. [Accessed: 25 Apr. 2025].
+\bibitem{ref43} S. Zhang, M. Hu, and J. Yang, ``TreePi: A Novel Graph Indexing Method,'' in \textit{2007 IEEE ICDE}, Apr. 2007, pp. 986--995. [Online]. Available: \url{https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=6439e8c8d7f1a11c50d66dca1c2fd5afc655488b}. [Accessed: 28 Apr. 2025].
 
-\bibitem{ref44} A. Salle, F. Porto, and P. Valduriez, ``Parallel Subgraph Matching on Multicore Systems,'' in \textit{Proc. SSDBM '18}, Jul. 2018, Article 18. [Online]. Available: \url{https://dl.acm.org/doi/10.1145/3469379.3469383}. [Accessed: 26 Apr. 2025].
+\bibitem{ref44} H. Han, H. Park, and J. Lee, ``Trunk: A Tree-Like Index Structure for Subgraph Isomorphism Queries,'' \textit{PVLDB}, vol. 1, no. 1, pp. 56--67, Aug. 2008. [Online]. Available: \url{https://www.vldb.org/pvldb/vol1/1453899.pdf}. [Accessed: 29 Apr. 2025].
 
-\bibitem{ref45} P. Lindenberger, A. Unagar, K. Amara, and C.-I. Hu, ``VF2 and Glasgow: Parallel Induced Subgraph Isomorphism Solvers,'' Report, ETH Z\"{u}rich, 2019. [Online]. Available: \url{https://aunagar.github.io/media/subgraph_isomorphism_report.pdf}. [Accessed: 27 Apr. 2025].
-
-\bibitem{ref46} S. Zhang, M. Hu, and J. Yang, ``TreePi: A Novel Graph Indexing Method,'' in \textit{2007 IEEE ICDE}, Apr. 2007, pp. 986--995. [Online]. Available: \url{https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=6439e8c8d7f1a11c50d66dca1c2fd5afc655488b}. [Accessed: 28 Apr. 2025].
-
-\bibitem{ref47} H. Han, H. Park, and J. Lee, ``Trunk: A Tree-Like Index Structure for Subgraph Isomorphism Queries,'' \textit{PVLDB}, vol. 1, no. 1, pp. 56--67, Aug. 2008. [Online]. Available: \url{https://www.vldb.org/pvldb/vol1/1453899.pdf}. [Accessed: 29 Apr. 2025].
-
-\bibitem{ref48} H. Zhang and J. C. S. Lui, ``Continuous Subgraph Matching on Dynamic Graphs,'' \textit{arXiv:1908.11248 [cs.DB]}, Aug. 2019. [Online]. Available: \url{https://arxiv.org/pdf/1908.11248}. [Accessed: 29 Apr. 2025].
+\bibitem{ref45} H. Zhang and J. C. S. Lui, ``Continuous Subgraph Matching on Dynamic Graphs,'' \textit{arXiv:1908.11248 [cs.DB]}, Aug. 2019. [Online]. Available: \url{https://arxiv.org/pdf/1908.11248}. [Accessed: 29 Apr. 2025].
 
 \end{thebibliography}
 \end{document}
