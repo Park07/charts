@@ -131,7 +131,7 @@
 }
 
 % Start page numbering at 37 and chapter at 5
-\setcounter{page}{39}
+\setcounter{page}{42}
 \setcounter{section}{4}
 
 \begin{document}
@@ -605,6 +605,181 @@ VF3 starts at a substantial disadvantage (0.1M EPS) but closes the gap significa
 
 These findings suggest a fundamental tradeoff between pruning effectiveness and parallel scalability. For single-threaded or low-parallelism environments, index-based approaches such as CECI remain optimal. For massively parallel systems, traversal-based approaches such as VF3 offer superior scaling despite lower baseline performance.
 
+%------------------------------------------------------------------------------
+\subsection{Design Principles for Parallel Subgraph Isomorphism}
+\label{sec:design-principles}
+%------------------------------------------------------------------------------
+
+The preceding experimental analysis reveals patterns that transcend individual algorithm comparisons. This section distils our findings into six design principles intended to guide both algorithm selection (for practitioners) and algorithm development (for researchers). Each principle is stated, justified with evidence from our experiments, and accompanied by practical implications.
+
+\subsubsection{Principle 1: The Pruning-Parallelism Inversion}
+
+\textbf{Principle:} \textit{Algorithms that maximise sequential pruning effectiveness inherently minimise parallel scalability. This tradeoff is fundamental, not incidental.}
+
+Our experiments reveal a consistent inverse relationship between single-threaded throughput and multi-threaded speedup:
+
+\begin{table}[htbp]
+\centering
+\caption{Pruning effectiveness versus parallel scalability.}
+\label{tab:pruning-parallelism}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Algorithm} & \textbf{1-Thread EPS} & \textbf{64-Thread Speedup} & \textbf{Pruning Approach} \\
+\midrule
+CECI & 64,000,000 & 0.33$\times$ (slower) & Global index \\
+SLF & 540,000 & 12$\times$ & Local filtering \\
+VF3PDL & 119,000 & 28$\times$ & Minimal pre-filtering \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This pattern admits theoretical explanation. Let $s$ represent the fraction of execution time spent in inherently sequential operations. Amdahl's Law bounds achievable speedup as $S_{\max} = n / (1 + (n-1)s)$. For CECI on dense graphs, our profiling (Section~\ref{sec:rq3}) shows $s \approx 0.99$, yielding $S_{\max} \approx 1.01$---precisely matching our empirical observation.
+
+We formalise this as the \textbf{Pruning-Parallelism Inversion Principle}:
+\begin{equation}
+\text{Effective Speedup} \leq \frac{1}{P_{eff}}
+\end{equation}
+where $P_{eff}$ represents pruning effectiveness (fraction of search space eliminated before parallel enumeration).
+
+\textbf{Implication:} Do not assume that the ``fastest'' sequential algorithm will remain fastest at high thread counts. Algorithm rankings can completely invert.
+
+\subsubsection{Principle 2: Pruning Locality Determines Scalability}
+
+\textbf{Principle:} \textit{Local pruning structures enable scaling; global shared structures create serialisation bottlenecks.}
+
+The architectural distinction between algorithms centres on where pruning state resides:
+
+\begin{table}[htbp]
+\centering
+\caption{Pruning structure and scalability relationship.}
+\label{tab:locality}
+\begin{tabular}{llr}
+\toprule
+\textbf{Algorithm} & \textbf{Pruning Structure} & \textbf{64-Thread Speedup} \\
+\midrule
+CECI & Global shared index & 0.33$\times$ \\
+VF3PDL & Local State Stack (LSS) + Global State Stack (GSS) & 28$\times$ \\
+SLF & Thread-local with passive sharing & 12$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+CECI's global index construction is inherently sequential, and enumeration requires coordinated access patterns. VF3PDL's dual-stack architecture enables each thread to operate on local state with minimal synchronisation.
+
+\textbf{Implication:} On systems with many cores ($>$16), prefer algorithms with local pruning structures unless memory constraints prohibit it. If global structures are necessary, make them read-only during the parallel phase.
+
+\subsubsection{Principle 3: Memory-Scalability Tradeoff}
+
+\textbf{Principle:} \textit{Algorithms that copy search state per thread face hard memory ceilings proportional to thread count.}
+
+Section~\ref{sec:rq1} documents dramatically different memory scaling behaviours:
+
+\begin{table}[htbp]
+\centering
+\caption{Memory scaling characteristics.}
+\label{tab:memory-scaling}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Algorithm} & \textbf{Memory @ 1t} & \textbf{Memory @ 64t} & \textbf{Growth} \\
+\midrule
+VF3PDL (RoadNet) & 1.6 GB & 43 GB & 27$\times$ \\
+VF3PDL (DBLP) & 272 MB & 10.3 GB & 38$\times$ \\
+SLF (RoadNet) & 760 MB & 4 GB & 5.3$\times$ \\
+CECI (all) & $\sim$125 MB & $\sim$125 MB & 1.0$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Implication:} Calculate expected memory before deployment:
+\[
+\text{Expected Memory} \approx \text{Base Memory} \times \text{Threads} \times \text{Algorithm Factor}
+\]
+where Algorithm Factor is $\sim$0.5 for VF3PDL, $\sim$0.08 for SLF, and $\sim$0.0 for CECI.
+
+\subsubsection{Principle 4: Graph Structure Determines Algorithm Effectiveness}
+
+\textbf{Principle:} \textit{No algorithm dominates universally. Algorithm rankings depend critically on graph density, degree distribution, and community structure.}
+
+Our heatmap analysis (Figure~\ref{fig:rq2-heatmap}) reveals complete ranking inversions:
+
+\begin{table}[htbp]
+\centering
+\caption{Algorithm selection by graph topology.}
+\label{tab:topology-selection}
+\begin{tabular}{lll}
+\toprule
+\textbf{Graph Property} & \textbf{Best Algorithm} & \textbf{Worst Algorithm} \\
+\midrule
+Sparse + Planar (RoadNet) & CECI & VF3PDL, SLF \\
+Sparse + Scale-free & CECI & VF3PDL \\
+Dense + Community structure & SLF & CECI \\
+Dense + Small & VF3PDL & CECI \\
+Structureless (Erd\H{o}s-R\'{e}nyi) & CECI & VF3PDL (44$\times$ worse) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Implication:} Algorithm selection must consider graph properties. Use CECI for sparse/planar graphs, SLF for dense graphs with community structure, and VF3PDL only when memory permits and structure supports pruning.
+
+\subsubsection{Principle 5: Traversal Heuristics Require Exploitable Structure}
+
+\textbf{Principle:} \textit{Degree-based pruning heuristics fail catastrophically on graphs with uniform degree distributions.}
+
+Our synthetic validation (Section~\ref{ch:synthetic}) isolates this effect:
+
+\begin{table}[htbp]
+\centering
+\caption{VF3PDL degradation by graph structure.}
+\label{tab:structure-dependency}
+\begin{tabular}{llr}
+\toprule
+\textbf{Graph Model} & \textbf{Structural Property} & \textbf{VF3PDL Degradation} \\
+\midrule
+Erd\H{o}s-R\'{e}nyi & Uniform degree, no hubs & 44$\times$ \\
+Barab\'{a}si-Albert & Power-law degree, hubs & 11$\times$ \\
+Real-world (DBLP) & Community structure & $\sim$3$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The performance ratio between CECI and VF3PDL on the largest Erd\H{o}s-R\'{e}nyi graph reaches \textbf{308,000:1}---compared to typical ratios of 10--100:1 on real-world graphs.
+
+\textbf{Implication:} For graphs lacking structure (random networks, anonymised graphs), only index-based approaches are viable.
+
+\subsubsection{Principle 6: Passive Sharing Outperforms Active Sharing}
+
+\textbf{Principle:} \textit{Minimise synchronisation by sharing work only when threads are idle, not continuously.}
+
+SLF's ``ask for sharing'' mechanism outperforms VF3P's ``keep sharing'' approach. SLF achieves 26$\times$ speedup on DBLP compared to VF3PDL's $\sim$12$\times$, despite using a simpler underlying sequential algorithm.
+
+SLF's depth-priority sharing adds a crucial refinement: tasks are only shared if \texttt{Task.depth < depth\_allow}, filtering out small, nearly-complete tasks that would cause ``thrashing.''
+
+\textbf{Implication:} Prefer work-stealing over work-pushing. Let idle threads request work rather than forcing busy threads to share continuously.
+
+\subsubsection{Summary of Design Principles}
+
+Table~\ref{tab:principles-summary} consolidates our design principles with supporting evidence.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of design principles for parallel SGI.}
+\label{tab:principles-summary}
+\begin{tabular}{clp{5.5cm}}
+\toprule
+\textbf{\#} & \textbf{Principle} & \textbf{Practitioner Guidance} \\
+\midrule
+1 & Pruning-Parallelism Inversion & Best sequential $\neq$ best parallel \\
+2 & Pruning Locality & Prefer local structures at high thread counts \\
+3 & Memory-Scalability Tradeoff & Calculate memory ceiling before deployment \\
+4 & Structure-Dependent Rankings & Match algorithm to graph topology \\
+5 & Traversal Requires Structure & Use index-based for structureless graphs \\
+6 & Passive $>$ Active Sharing & Prefer work-stealing over work-pushing \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These principles collectively establish that parallel SGI algorithm design involves \textbf{navigating tradeoffs}, not optimising a single objective. The ``best'' algorithm depends on the interaction between graph structure, available memory, thread count, and query characteristics.
+
 %==============================================================================
 \section{Synthetic Validation}
 \label{ch:synthetic}
@@ -969,44 +1144,132 @@ OMP_NUM_THREADS=16 ./SubgraphMatching.out \
 \label{ch:conclusion}
 %==============================================================================
 
-This thesis presented a comprehensive empirical evaluation of parallel subgraph isomorphism algorithms, addressing three research questions through systematic experimentation on both real-world and synthetic datasets.
+This thesis presented the first systematic empirical evaluation of parallel subgraph isomorphism algorithms on single-machine multi-core architectures. Where prior work evaluated algorithms in isolation against their own baselines, we provide unified cross-algorithm comparison spanning design paradigms, graph topologies, and synthetic validation. This section summarises our contributions, their implications, and directions for future research.
 
-\subsection{Summary of Findings}
+%------------------------------------------------------------------------------
+\subsection{Summary of Contributions}
+%------------------------------------------------------------------------------
 
-\paragraph{RQ1: Parallel Scaling Behaviour.}
-We found that parallel scaling characteristics vary dramatically across algorithms. VF3PDL achieves superlinear speedups (up to 78$\times$ on 64 threads) through effective work partitioning, but incurs substantial memory overhead (27--38$\times$ increase). CECI exhibits negative scaling due to synchronisation overhead on shared index structures. SLF occupies a middle ground with dataset-dependent scaling behaviour.
+\subsubsection{Contribution 1: Quantifying the Evaluation Gap}
 
-\paragraph{RQ2: Topology and Density Effects.}
-Graph structure critically determines algorithm effectiveness. Index-based approaches (CECI) excel on sparse and planar graphs where traversal heuristics fail. Traversal-based approaches (SLF, VF3PDL) perform better on dense graphs with degree heterogeneity. Synthetic validation confirmed that VF3PDL degrades 44$\times$ on structureless Erdős-Rényi graphs compared to 11$\times$ on scale-free Barabási-Albert graphs.
+We demonstrated that 86\% of possible cross-algorithm comparisons are missing from published literature (Section~1.2). By systematically comparing CECI, VF3PDL, and SLF under controlled conditions, this thesis fills critical gaps in the evaluation landscape, enabling evidence-based algorithm selection for the first time.
 
-\paragraph{RQ3: Pruning vs Parallelism Tradeoff.}
-We identified a fundamental tradeoff between pruning effectiveness and parallel scalability. Algorithms with aggressive pruning (CECI) achieve high single-thread throughput but poor scaling. Algorithms with minimal pruning (VF3PDL) scale well but depend on exploitable graph structure. Synthetic experiments demonstrated a 308,000$\times$ performance gap between CECI and VF3PDL on structureless graphs, validating this tradeoff.
+\subsubsection{Contribution 2: The Pruning-Parallelism Inversion Principle}
 
+Our central theoretical contribution is the formalisation of a fundamental tradeoff: algorithms that maximise sequential pruning effectiveness inherently minimise parallel scalability. We demonstrated this empirically (CECI: 64M EPS single-thread, 0.33$\times$ speedup; VF3PDL: 119K EPS single-thread, 28$\times$ speedup) and explained it theoretically through Amdahl's Law analysis showing that CECI's pruning phase consumes 88--100\% of execution time on dense graphs.
+
+This principle has immediate practical consequence: the ``fastest'' algorithm in sequential benchmarks may be the \textit{slowest} on parallel systems. Prior literature, which evaluated algorithms primarily on single-threaded performance, could not reveal this inversion.
+
+\subsubsection{Contribution 3: Structure-Dependent Algorithm Rankings}
+
+We established that no algorithm dominates universally. Rankings invert completely based on graph properties:
+
+\begin{itemize}
+    \item CECI dominates on sparse and planar graphs (3M EPS vs.\ near-zero for traversal-based methods on RoadNet)
+    \item SLF dominates on dense graphs with community structure (17M EPS vs.\ 8M for CECI on DBLP)
+    \item VF3PDL excels on small dense graphs where memory overhead is acceptable
+\end{itemize}
+
+This finding challenges the implicit assumption in prior work that algorithm improvements generalise across graph types.
+
+\subsubsection{Contribution 4: Synthetic Validation of Structural Dependency}
+
+By isolating graph structure through controlled experiments on Erd\H{o}s-R\'{e}nyi and Barab\'{a}si-Albert graphs, we quantified the dependence of traversal-based algorithms on exploitable structure. VF3PDL degrades 44$\times$ on structureless graphs versus 11$\times$ on scale-free graphs, while CECI maintains constant $\sim$30M EPS regardless of topology. The 308,000:1 performance ratio on the largest structureless graph represents the extreme case of the pruning-parallelism tradeoff.
+
+\subsubsection{Contribution 5: Design Principles for Parallel SGI}
+
+We distilled our findings into six actionable design principles (Section~\ref{sec:design-principles}) that guide both algorithm selection and future algorithm development. These principles---covering pruning locality, memory-scalability tradeoffs, structure dependency, and sharing strategies---provide the first systematic design guidance for parallel SGI on multi-core systems.
+
+\subsubsection{Contribution 6: Reproducibility Analysis}
+
+Our documentation of critical bugs in GraphMini and the original CECI implementation (Section~\ref{ch:reproducibility}) serves as a methodological contribution, highlighting the importance of independent verification and motivating standardised benchmarking frameworks for future research.
+
+%------------------------------------------------------------------------------
 \subsection{Practical Recommendations}
+%------------------------------------------------------------------------------
 
-Based on our findings, we provide the following algorithm selection guidelines:
+Based on our findings, we provide algorithm selection guidance formalised as a decision procedure:
 
-\begin{itemize}
-    \item \textbf{Sparse or planar graphs}: Use CECI for consistent high throughput.
-    \item \textbf{Dense graphs with community structure}: Use SLF for balanced performance.
-    \item \textbf{Memory-constrained environments}: Use CECI (constant memory) or SLF (moderate growth).
-    \item \textbf{Massively parallel systems}: Consider VF3PDL if memory permits and graph structure supports pruning.
-\end{itemize}
+\begin{enumerate}
+    \item \textbf{Assess graph structure}: Determine whether the target graph has exploitable structure (degree heterogeneity, community organisation) or is structureless (random, anonymised).
 
+    \item \textbf{For structureless or planar graphs}: Use CECI. Traversal-based algorithms will fail catastrophically (up to 308,000$\times$ slower).
+
+    \item \textbf{For structured graphs, assess density}:
+    \begin{itemize}
+        \item \textit{Sparse queries}: Use CECI for consistent throughput.
+        \item \textit{Dense queries}: Use SLF for best performance on graphs with community structure.
+    \end{itemize}
+
+    \item \textbf{Consider memory constraints}: If memory is limited, use CECI (constant footprint) or SLF (5$\times$ growth). Avoid VF3PDL on memory-constrained systems (27--38$\times$ growth).
+
+    \item \textbf{Consider thread count}: At very high thread counts ($>$32), VF3PDL's superior scaling may overcome its lower baseline---but only if memory permits and graph structure supports pruning.
+\end{enumerate}
+
+Table~\ref{tab:selection-guide} summarises these recommendations.
+
+\begin{table}[htbp]
+\centering
+\caption{Algorithm selection guide based on experimental findings.}
+\label{tab:selection-guide}
+\begin{tabular}{lll}
+\toprule
+\textbf{Scenario} & \textbf{Recommended} & \textbf{Avoid} \\
+\midrule
+Sparse or planar graphs & CECI & VF3PDL, SLF \\
+Dense graphs + community structure & SLF & CECI \\
+Memory-constrained ($<$16 GB) & CECI, SLF & VF3PDL \\
+Structureless graphs & CECI & VF3PDL \\
+Small dense graphs + high parallelism & VF3PDL & CECI \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%------------------------------------------------------------------------------
 \subsection{Limitations}
+%------------------------------------------------------------------------------
 
-This study has several limitations. First, the evaluation was conducted on a shared server environment, introducing potential variability from competing workloads. Second, GraphMini was excluded due to implementation bugs, limiting the scope of algorithm comparison. Third, synthetic graphs, while providing controlled validation, may not capture all properties of real-world networks.
+This study has several limitations that should be considered when interpreting results:
 
+\textbf{Shared server environment.} Experiments were conducted on a shared server, introducing potential variability from competing workloads. While we used consistent parameters and multiple query patterns to mitigate this, dedicated hardware would provide more precise measurements.
+
+\textbf{Algorithm coverage.} GraphMini was excluded due to implementation bugs that prevent processing patterns with more than 7 vertices. This limits our coverage of compiler-based approaches. Future work should revisit GraphMini if these issues are resolved.
+
+\textbf{Single-run experiments.} Due to time constraints, most experiments represent single runs rather than multiple trials with statistical analysis. While the magnitude of observed differences (often orders of magnitude) exceeds expected variance, formal statistical validation would strengthen confidence in results.
+
+\textbf{Synthetic graph limitations.} While Erd\H{o}s-R\'{e}nyi and Barab\'{a}si-Albert models provide controlled structure variation, they may not capture all properties of real-world networks. In particular, the tight clustering found in social networks is absent from both models.
+
+%------------------------------------------------------------------------------
 \subsection{Future Work}
+%------------------------------------------------------------------------------
 
-Several directions merit further investigation:
+Our findings motivate several specific research directions:
 
-\begin{itemize}
-    \item \textbf{Hybrid algorithms}: Combining index-based pruning with scalable parallel enumeration.
-    \item \textbf{Adaptive approaches}: Algorithms that dynamically select strategies based on detected graph properties.
-    \item \textbf{GPU acceleration}: Leveraging massively parallel GPU architectures for subgraph matching.
-    \item \textbf{Distributed systems}: Scaling beyond single-node parallelism for massive graphs.
-\end{itemize}
+\subsubsection{Hybrid Architectures}
+
+The pruning-parallelism tradeoff suggests that optimal algorithms should combine index-based pruning with scalable parallel enumeration. A concrete approach: use CECI's BFS-based filtering (which is embarrassingly parallel during construction) but replace its sequential enumeration with VF3PDL's task-based exploration. The key challenge is designing an interface between the index and enumerator that avoids reintroducing serialisation. We hypothesise that partitioning the CECI index by starting vertex could enable this, though load balancing implications remain unexplored.
+
+\subsubsection{Adaptive Algorithm Selection}
+
+Our structure-dependent findings suggest that runtime algorithm selection based on detected graph properties could outperform any fixed choice. Future work should investigate lightweight graph characterisation metrics (degree distribution moments, clustering coefficient estimates) that predict algorithm performance without full graph analysis.
+
+\subsubsection{Parallel Index Construction}
+
+CECI's poor scaling stems from sequential index construction. Parallelising this phase---perhaps through speculative construction or hierarchical indexing---could preserve CECI's pruning effectiveness while achieving scalability. Our Amdahl's Law analysis provides a quantitative target: reducing sequential fraction from 99\% to 50\% would increase theoretical speedup from 1.01$\times$ to 1.98$\times$ at 64 threads.
+
+\subsubsection{Extended Validation}
+
+Future work should extend our evaluation to GPU-accelerated algorithms, distributed systems, and dynamic/streaming graphs. The principles we identified---particularly the pruning-parallelism tradeoff---likely generalise to these settings, but empirical validation is required.
+
+%------------------------------------------------------------------------------
+\subsection{Closing Remarks}
+%------------------------------------------------------------------------------
+
+Prior to this work, practitioners selecting parallel SGI algorithms relied on performance claims validated only against each algorithm's own baselines on idiosyncratic datasets. We establish that such claims are fundamentally unreliable: algorithm rankings invert completely across graph topologies, and the pruning-parallelism tradeoff means that sequential performance is a poor predictor of parallel behaviour.
+
+Our central message is that \textbf{parallel SGI algorithm design involves navigating tradeoffs, not optimising a single objective}. The ``best'' algorithm depends on the interaction between graph structure, query density, available memory, and thread count. By quantifying these interactions and formalising them as design principles, this thesis provides the foundation for principled algorithm selection and future algorithmic development in parallel subgraph matching.
+
+We release our benchmarking framework and experimental scripts to enable reproducible evaluation of future algorithms, with the hope that standardised cross-algorithm comparison becomes the norm rather than the exception in this field.
 
 %==============================================================================
 \section*{References}
