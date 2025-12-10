@@ -690,6 +690,27 @@ These results are consistent with the performance trends observed on real-world 
 
 Figure~\ref{fig:synthetic-rq2-er} presents algorithm performance on Erdős-Rényi graphs, which exhibit uniform degree distributions and lack community structure. CECI maintains stable throughput of approximately 30 million EPS regardless of graph scale. SLF exhibits moderate degradation, with throughput dropping from 274K EPS on the smallest graph to 104K EPS on the largest, representing a 2.6-fold reduction. VF3PDL suffers severe degradation, with throughput falling from 4,387 EPS to just 99 EPS as graph size increases from 250K to 3M edges. This 44-fold reduction confirms that VF3PDL's pruning heuristics depend on discriminatory structural features to guide the search. In random graphs where local neighbourhoods are statistically uniform, these heuristics fail to prune effectively, forcing the algorithm into near-exhaustive exploration.
 
+Table~\ref{tab:synthetic-er-sparse} provides detailed EPS values for sparse queries on ER graphs.
+
+\begin{table}[htbp]
+\centering
+\caption{Sparse query performance on Erdős-Rényi graphs (EPS).}
+\label{tab:synthetic-er-sparse}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Graph} & \textbf{CECI} & \textbf{SLF} & \textbf{VF3PDL} \\
+\midrule
+er\_250k (250K edges) & 28,043,463 & 274,415 & 4,387 \\
+er\_500k (500K edges) & 31,567,415 & 254,921 & 1,569 \\
+er\_1m (1M edges) & 32,569,885 & 268,008 & 608 \\
+er\_2m (2M edges) & 32,666,319 & 186,658 & 192 \\
+er\_3m (3M edges) & 30,556,861 & 103,936 & 99 \\
+\midrule
+\textbf{Degradation} & 1.0$\times$ & 2.6$\times$ & \textbf{44$\times$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{synthetic_rq2_ba.png}
@@ -698,6 +719,27 @@ Figure~\ref{fig:synthetic-rq2-er} presents algorithm performance on Erdős-Rény
 \end{figure}
 
 Figure~\ref{fig:synthetic-rq2-ba} presents results on Barabási-Albert graphs, which model scale-free networks with power-law degree distributions. The presence of hub vertices in BA graphs provides anchor points for traversal heuristics, enabling more effective pruning than on random graphs. CECI remains stable at 30-35 million EPS. VF3PDL shows improved resilience compared to the ER case, with throughput dropping from 133 to 12 EPS across the tested range. This 11-fold reduction, compared to the 44-fold reduction observed on ER graphs, indicates that hub structure partially compensates for the lack of community organisation. However, traversal-based throughput remains orders of magnitude lower than CECI, demonstrating that while hubs mitigate degradation, they do not eliminate the fundamental advantage of index-based enumeration.
+
+Table~\ref{tab:synthetic-ba-sparse} provides detailed EPS values for sparse queries on BA graphs.
+
+\begin{table}[htbp]
+\centering
+\caption{Sparse query performance on Barabási-Albert graphs (EPS).}
+\label{tab:synthetic-ba-sparse}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Graph} & \textbf{CECI} & \textbf{SLF} & \textbf{VF3PDL} \\
+\midrule
+ba\_50k (50K edges) & 34,507,994 & 143,507 & 133 \\
+ba\_100k (100K edges) & 34,783,802 & 185,848 & 46 \\
+ba\_250k (250K edges) & 35,432,489 & 300,630 & 30 \\
+ba\_500k (500K edges) & 35,248,839 & 123,831 & 33 \\
+ba\_750k (750K edges) & 35,653,158 & 131,180 & 12 \\
+\midrule
+\textbf{Degradation} & 1.0$\times$ & 2.3$\times$ & \textbf{11$\times$} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 %------------------------------------------------------------------------------
 \section{RQ3: The Pruning-Structure Dependency}
@@ -716,6 +758,44 @@ Figure~\ref{fig:synthetic-rq3} directly compares CECI and VF3PDL performance acr
 This disparity stands in stark contrast to the gaps observed on real-world graphs, where VF3PDL typically trails CECI by a factor of 10 to 100. The difference arises because real-world graphs possess exploitable structure: high clustering coefficients, skewed degree distributions, and community organisation that pruning heuristics can leverage to eliminate large portions of the search space. When this structure is removed, as in ER graphs, the cost of traversal becomes prohibitive.
 
 CECI's index-based enumeration, by contrast, operates independently of graph structure. The algorithm constructs a global index during preprocessing and enumerates matches through parallel set intersections, a process that does not rely on local structural features to achieve efficiency. This structure-agnostic property makes CECI the only viable solution for graphs lacking exploitable organisation, while also explaining its consistent dominance across all tested configurations.
+
+%------------------------------------------------------------------------------
+\section{Dense Query Analysis}
+\label{sec:synthetic-dense}
+%------------------------------------------------------------------------------
+
+Dense query experiments revealed an important density threshold phenomenon. Table~\ref{tab:synthetic-dense} summarises dense 8-vertex query results across both graph models.
+
+\begin{table}[htbp]
+\centering
+\caption{Dense 8-vertex query results on synthetic graphs. Zero matches indicate insufficient graph density for the query pattern.}
+\label{tab:synthetic-dense}
+\begin{tabular}{llrrr}
+\toprule
+\textbf{Model} & \textbf{Graph} & \textbf{CECI} & \textbf{SLF} & \textbf{VF3PDL} \\
+\midrule
+ER & er\_250k & 0 & 0 & 0 \\
+ER & er\_500k & 330,873 & 266,894 & 256,530 \\
+ER & er\_1m & 10,433,355 & 166,768 & 4,166 \\
+ER & er\_2m & 28,687,873 & 108,246 & 815 \\
+ER & er\_3m & 29,798,419 & 133,798 & 290 \\
+\midrule
+BA & ba\_50k & 0 & 0 & 0 \\
+BA & ba\_100k & 24,136,624 & 225,095 & 296 \\
+BA & ba\_250k & 31,444,125 & 141,857 & 98 \\
+BA & ba\_500k & 31,703,235 & 157,289 & 81 \\
+BA & ba\_750k & 33,033,988 & 229,888 & 45 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Density Crossover Effect.}
+The zero-match results on sparse graphs (er\_250k, ba\_50k) demonstrate a \textit{density crossover} threshold: dense query patterns require minimum graph density to exist. For 8-vertex near-clique patterns, the threshold lies between average degree 10 (er\_250k: 0 matches) and average degree 20 (er\_500k: 11.7M matches). This validates the RQ2 finding that query-graph density matching is critical for subgraph isomorphism performance.
+
+Once the density threshold is crossed, performance patterns mirror those observed in sparse queries. CECI maintains dominant throughput (24--33M EPS on BA graphs above threshold), while VF3PDL exhibits severe degradation as graph size increases. The consistent performance hierarchy across both sparse and dense queries reinforces the structural dependency of traversal-based algorithms.
+
+\paragraph{Dense 16-Vertex Results.}
+Dense 16-vertex queries produced zero matches across nearly all synthetic configurations, indicating that the generated graphs lack sufficient local density to contain such patterns. This is consistent with the theoretical properties of ER and BA models, which produce globally sparse graphs even at high edge counts. The absence of the tight clustering found in real-world networks prevents the formation of dense 16-vertex substructures.
 
 %------------------------------------------------------------------------------
 \section{Summary of Synthetic Validation}
