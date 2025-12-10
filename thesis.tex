@@ -1,5 +1,4 @@
-\documentclass[12pt,a4paper]{article}
-
+\documentclass[12pt,a4paper]{report}
 % Packages
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -18,25 +17,30 @@
 \usepackage{tabularx}
 \usepackage{float}
 \usepackage[margin=2cm]{geometry}
-\usepackage{helvet}  % Times font (IEEE style)
-\renewcommand{\familydefault}{\sfdefault}  % Use sans-serif as default
-
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
 \usepackage{titlesec}
 \usetikzlibrary{positioning,shapes.geometric,arrows.meta}
 
-% IEEE-style section formatting
-\titleformat{\section}{\normalfont\Large\bfseries\centering}{\Roman{section}.}{0.5em}{}
-\titleformat{\subsection}{\normalfont\large\bfseries}{\Alph{subsection}.}{0.5em}{}
-\titleformat{\subsubsection}{\normalfont\normalsize\itshape}{\arabic{subsubsection})}{0.5em}{}
+% Chapter formatting (no "Chapter X" prefix, just the title)
+\titleformat{\chapter}[display]
+  {\normalfont\Large\bfseries\centering}
+  {Chapter \thechapter}{0pt}{\LARGE}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+% Section formatting
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.5em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\itshape}{\thesubsubsection}{0.5em}{}
 
 % Dark theme code listing styles
-\definecolor{codebg}{RGB}{40,42,54}        % Dark background
-\definecolor{codecomment}{RGB}{98,114,164}  % Purple-gray comments
-\definecolor{codestring}{RGB}{241,250,140}  % Yellow strings
-\definecolor{codekeyword}{RGB}{255,121,198} % Pink keywords
-\definecolor{codenumber}{RGB}{189,147,249}  % Purple numbers
-\definecolor{codetext}{RGB}{248,248,242}    % Light text
-\definecolor{codegreen}{RGB}{80,250,123}    % Green
+\definecolor{codebg}{RGB}{40,42,54}
+\definecolor{codecomment}{RGB}{98,114,164}
+\definecolor{codestring}{RGB}{241,250,140}
+\definecolor{codekeyword}{RGB}{255,121,198}
+\definecolor{codenumber}{RGB}{189,147,249}
+\definecolor{codetext}{RGB}{248,248,242}
+\definecolor{codegreen}{RGB}{80,250,123}
 
 \lstdefinestyle{codestyle}{
     basicstyle=\ttfamily\footnotesize\color{codetext},
@@ -108,27 +112,42 @@
     citecolor=blue,
     urlcolor=blue
 }
+
+% Header and footer setup
 \usepackage{fancyhdr}
 \setlength{\headheight}{14.5pt}
 \addtolength{\topmargin}{-2.5pt}
-
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{William Park}
-\fancyhead[R]{A Survey on Parallel Subgraph Matching}
-\fancyfoot[C]{\thepage}
-\renewcommand{\headrulewidth}{0pt}
+\fancyhead[R]{Survey on Parallel Subgraph Matching}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Also apply to chapter pages
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyhead[L]{William Park}
+    \fancyhead[R]{Survey on Parallel Subgraph Matching}
+    \fancyfoot[R]{\thepage}
+    \renewcommand{\headrulewidth}{0.4pt}
+}
+
+% Start page numbering at 37 and chapter at 5
+\setcounter{page}{37}
+\setcounter{chapter}{4}
 
 \begin{document}
 
 %==============================================================================
-\section{Benchmarking Framework Architecture}
-\label{sec:framework}
+\chapter{Benchmarking Framework Architecture}
+\label{ch:framework}
 %==============================================================================
 
 A critical challenge in comparative evaluation of parallel subgraph isomorphism algorithms is the heterogeneity of implementations: each algorithm employs different input formats, command-line interfaces, output conventions, and configuration mechanisms. To enable fair and consistent comparison, we developed a unified benchmarking framework based on the \emph{Controller-Adapter} design pattern.
 
-\subsection{Design Pattern: Controller-Adapter Architecture}
+\section{Design Pattern: Controller-Adapter Architecture}
 
 The Controller-Adapter pattern provides a clean abstraction layer between the benchmarking logic and algorithm-specific implementation details. This architecture comprises three principal components:
 
@@ -172,7 +191,7 @@ Figure~\ref{fig:adapter-architecture} illustrates the architectural hierarchy.
 \label{fig:adapter-architecture}
 \end{figure}
 
-\subsection{Standardising Input Format}
+\section{Standardising Input Format}
 
 Table~\ref{tab:formats} summarises the input format requirements for each algorithm.
 
@@ -214,7 +233,7 @@ e 0 1 0              # Edge from 0 to 1, label 0
 e 0 2 0              # Edge from 0 to 2, label 0
 \end{lstlisting}
 
-\subsection{Adapter Implementation}
+\section{Adapter Implementation}
 
 Each adapter implements the \texttt{SubgraphMatchingAdapter} abstract base class:
 
@@ -233,7 +252,7 @@ class SubgraphMatchingAdapter(ABC):
         pass
 \end{lstlisting}
 
-\subsection{Master Controller Operation}
+\section{Master Controller Operation}
 
 The master controller implements experiment orchestration through nested iteration over the experimental parameter space:
 
@@ -249,7 +268,7 @@ for algorithm in algorithms:
                 append_to_csv(result)
 \end{lstlisting}
 
-\subsection{Standardised Output Format}
+\section{Standardised Output Format}
 
 All adapters produce results conforming to a unified CSV schema:
 
@@ -261,14 +280,15 @@ SLF,enron,query_dense_8v_1,8,0.156,15420,112.8,SUCCESS
 \end{lstlisting}
 
 %==============================================================================
-\section{Experimental Setup}
-\label{sec:setup}
+\chapter{Experimental Setup}
+\label{ch:setup}
 %==============================================================================
 
-\subsection{Hardware Environment}
+\section{Hardware Environment}
 
 \paragraph{Primary Server.}
 All experiments were conducted on TODS1 (\texttt{tods1.cse.unsw.edu.au}), a shared server in the UNSW CSE department with the following specifications:
+
 \begin{itemize}
     \item \textbf{CPUs}: 96 logical cores (48 physical cores with hyperthreading)
     \item \textbf{Architecture}: 2 NUMA nodes (Node 0: cores 0--23, 48--71; Node 1: cores 24--47, 72--95)
@@ -278,7 +298,7 @@ All experiments were conducted on TODS1 (\texttt{tods1.cse.unsw.edu.au}), a shar
 \paragraph{Development Environment.}
 Local testing and development was performed on a MacBook Air M2 (8GB RAM).
 
-\subsection{Software Environment}
+\section{Software Environment}
 
 \begin{itemize}
     \item \textbf{Language}: C++
@@ -287,7 +307,7 @@ Local testing and development was performed on a MacBook Air M2 (8GB RAM).
     \item \textbf{Build System}: Make
 \end{itemize}
 
-\subsection{Experimental Parameters}
+\section{Experimental Parameters}
 
 Table~\ref{tab:parameters} summarises the experimental configuration.
 
@@ -306,7 +326,7 @@ Timeout & 600 seconds (10 minutes) \\
 \end{tabular}
 \end{table}
 
-\subsection{Datasets}
+\section{Datasets}
 
 Table~\ref{tab:datasets} describes the graph datasets used in our evaluation.
 
@@ -326,16 +346,17 @@ RoadNet-CA & Road network & $\sim$2M & $\sim$5.5M \\
 \end{tabular}
 \end{table}
 
-\subsection{Query Patterns}
+\section{Query Patterns}
 
 Query patterns were generated with the following characteristics:
+
 \begin{itemize}
     \item \textbf{Densities}: Sparse, Dense
     \item \textbf{Sizes}: 8, 16, 24, 32 vertices
     \item \textbf{Format}: 5 queries per (density $\times$ size) combination
 \end{itemize}
 
-\subsection{Algorithms Compared}
+\section{Algorithms Compared}
 
 Table~\ref{tab:algorithms} summarises the algorithms evaluated in this study.
 
@@ -354,7 +375,7 @@ CECI & Index-based intersection \\
 \end{tabular}
 \end{table}
 
-\subsection{Research Questions}
+\section{Research Questions}
 
 This evaluation addresses three research questions:
 
@@ -365,12 +386,12 @@ This evaluation addresses three research questions:
 \end{enumerate}
 
 %==============================================================================
-\section{Experimental Results}
-\label{sec:results}
+\chapter{Experimental Results}
+\label{ch:results}
 %==============================================================================
 
 %------------------------------------------------------------------------------
-\subsection{Research Question 1: Parallel Scaling Behaviour}
+\section{Research Question 1: Parallel Scaling Behaviour}
 \label{sec:rq1}
 %------------------------------------------------------------------------------
 
@@ -378,9 +399,8 @@ This section addresses Research Question 1: How do parallel subgraph matching al
 
 Parallel speedup is formally defined as $S_p = T_1 / T_p$, where $T_1$ is sequential execution time and $T_p$ is parallel execution time on $p$ processors. The theoretical upper bound establishes that $T_1 \leq p \cdot T_p$, implying linear speedup ($S_p = p$) as the maximum achievable under ideal conditions. Superlinear speedup ($S_p > p$) can occur in search problems due to work anomalies, where parallel exploration collectively avoids unproductive regions.
 
-\subsubsection{Memory Constraints and Scalability Limits}
+\subsection{Memory Constraints and Scalability Limits}
 
-% FIGURE PLACEHOLDER
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{rq1_memory_scaling.png}
@@ -396,9 +416,8 @@ CECI, in contrast, maintains a constant memory footprint regardless of thread co
 
 SLF demonstrates moderate linear growth, with memory usage on RoadNet rising from approximately 760 MB to 4 GB (a 5.3-fold increase). This suggests an optimised sharing mechanism that incurs significantly lower overhead than VF3 while still requiring some per-thread state.
 
-\subsubsection{Superlinear Scaling Anomalies (8-Vertex Queries)}
+\subsection{Superlinear Scaling Anomalies (8-Vertex Queries)}
 
-% FIGURE PLACEHOLDER
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{rq1_superlinear.png}
@@ -414,9 +433,8 @@ With smaller 8-vertex queries, significant superlinear speedups are observed. VF
 
 CECI exhibits the opposite pattern, demonstrating negative scalability ($S_p < 1$) across all tested workloads. Performance decreases to 0.10x on Enron and remains below the break-even threshold across all datasets: 0.58x on DBLP, 0.69x on RoadNet, and 0.96x on LiveJournal. This violation of expected scaling behaviour indicates that synchronisation overhead on the shared index structure exceeds the computational work distributed per thread. The atomic operations required to maintain index consistency impose costs that grow with thread count, effectively negating parallel gains.
 
-\subsubsection{Standard Scaling Behaviour (16-Vertex Queries)}
+\subsection{Standard Scaling Behaviour (16-Vertex Queries)}
 
-% FIGURE PLACEHOLDER
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{rq1_speedup_curves.png}
@@ -432,9 +450,8 @@ CECI exhibits the opposite behaviour, demonstrating negative scalability across 
 
 SLF displays dataset-dependent performance. On DBLP, it achieves near-linear scaling with a 26x speedup, yet on the sparse Enron dataset, performance degrades to 0.7x. This dichotomy suggests that stream-based filtering requires sufficient graph density to amortise the coordination overhead.
 
-\subsubsection{Aggregate Parallel Efficiency at High Concurrency}
+\subsection{Aggregate Parallel Efficiency at High Concurrency}
 
-% FIGURE PLACEHOLDER
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{rq1_speedup_bar.png}
@@ -453,15 +470,14 @@ SLF achieves substantial speedups on dense graphs, reaching 27x on DBLP dense an
 Taken together, these findings demonstrate that the limits to parallel speedup are algorithm-specific. VF3 is primarily constrained by memory availability, reaching 72 GB at 64 threads on LiveJournal. CECI is limited by synchronisation overhead inherent to its shared index structure. SLF offers a middle ground, achieving strong scaling on dense graphs while remaining sensitive to sparse topologies.
 
 %------------------------------------------------------------------------------
-\subsection{Research Question 2: Graph Density and Topology Effects}
+\section{Research Question 2: Graph Density and Topology Effects}
 \label{sec:rq2}
 %------------------------------------------------------------------------------
 
 This section addresses Research Question 2: How do graph density and topology affect the relative performance of traversal-based (SLF/VF3) versus index-based (CECI) algorithms? The analysis synthesises data from performance heatmaps, density comparisons, and scale-based evaluations to establish the relationship between graph structure and algorithmic efficacy.
 
-\subsubsection{The Density Crossover Effect}
+\subsection{The Density Crossover Effect}
 
-% FIGURE PLACEHOLDER
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{rq2_density_effect.png}
@@ -477,9 +493,8 @@ As query density increases, a distinct crossover occurs. On LiveJournal with den
 
 This inversion suggests that increased graph density facilitates traversal-based algorithms by providing more high-degree vertices for effective candidate pruning. Index-based approaches such as CECI incur quadratic filtering costs on dense neighbourhoods, which potentially negates the benefits of indexing.
 
-\subsubsection{Topological Sensitivity and Planar Graph Limitations}
+\subsection{Topological Sensitivity and Planar Graph Limitations}
 
-% FIGURE PLACEHOLDER
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{rq2_scale_effect.png}
@@ -495,9 +510,8 @@ The failure of VF3 and SLF on RoadNet indicates that traversal heuristics rely h
 
 CECI's success on RoadNet demonstrates the robustness of index-based approaches on planar graphs. By constructing a global index, CECI can locate rare embeddings directly without traversing the sparse search region of uniform low-degree nodes. It should be noted, however, that the classification of RoadNet as ``planar'' is based on its known road network structure rather than formal planarity testing.
 
-\subsubsection{Global Performance Landscape}
+\subsection{Global Performance Landscape}
 
-% FIGURE PLACEHOLDER
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{rq2_winner_heatmap.png}
@@ -516,15 +530,14 @@ VF3 appears as a specialised solution, achieving optimal performance only on Enr
 These results demonstrate that no single algorithm dominates across all configurations. Effective algorithm selection requires consideration of graph topology: CECI for sparse and planar graphs, SLF for dense scale-free graphs, and VF3 for small-scale dense queries where memory constraints permit.
 
 %------------------------------------------------------------------------------
-\subsection{Research Question 3: Pruning vs Scalability Tradeoff}
+\section{Research Question 3: Pruning vs Scalability Tradeoff}
 \label{sec:rq3}
 %------------------------------------------------------------------------------
 
 This section addresses Research Question 3: Is there a fundamental tradeoff between pruning effectiveness and parallel scalability? By analysing single-thread performance against multi-threaded speedups, the results establish a clear inverse relationship between the sophistication of sequential pruning and the capacity for parallel scaling.
 
-\subsubsection{The Pruning-Scalability Inversion}
+\subsection{The Pruning-Scalability Inversion}
 
-% FIGURE PLACEHOLDER
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{rq3_grouped_bar.png}
@@ -542,9 +555,8 @@ SLF occupies the middle ground, offering moderate pruning (540K EPS at 1 thread)
 
 These findings point to a quantifiable cost associated with algorithmically ``sophisticated'' approaches: the more effective an algorithm is at sequential pruning, the harder it becomes to parallelise the remaining work effectively.
 
-\subsubsection{The Amdahl's Law Bottleneck}
+\subsection{The Amdahl's Law Bottleneck}
 
-% FIGURE PLACEHOLDER
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{rq3_ceci_breakdown.png}
@@ -580,9 +592,8 @@ This explains why CECI remains viable on sparse datasets but exhibits degraded p
 
 Taken together, these results demonstrate that the tradeoff is structural: aggressive index-based pruning shifts the computational burden from the parallelisable enumeration phase to the inherently sequential filtering phase. For dense graphs, this shift is detrimental to scalability. However, this analysis assumes that CECI's filtering phase cannot be parallelised; future implementations achieving partial parallelisation of index construction may alter this tradeoff.
 
-\subsubsection{Absolute Performance Impact}
+\subsection{Absolute Performance Impact}
 
-% FIGURE PLACEHOLDER
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{rq3_speedup.png}
@@ -599,157 +610,14 @@ VF3 starts at a substantial disadvantage (0.1M EPS) but closes the gap significa
 These findings suggest a fundamental tradeoff between pruning effectiveness and parallel scalability. For single-threaded or low-parallelism environments, index-based approaches such as CECI remain optimal. For massively parallel systems, traversal-based approaches such as VF3 offer superior scaling despite lower baseline performance.
 
 %==============================================================================
-\section{Challenges in Reproducibility}
-\label{sec:reproducibility}
-%==============================================================================
-
-During the course of this evaluation, we encountered significant reproducibility challenges with two of the algorithms originally planned for inclusion: GraphMini and the original CECI implementation. These issues substantially impacted the scope of our comparative analysis.
-
-%------------------------------------------------------------------------------
-\subsection{GraphMini: Critical Implementation Bugs}
-\label{sec:graphmini}
-%------------------------------------------------------------------------------
-
-As mentioned in Part B of this thesis, I had encountered significant issues with GraphMini which was not mentioned by the authors. The algorithm was unable to handle any graph inputs with more than 4 vertices and I have raised this issue on Github. The results I have collected so far are:
-
-% FIGURE PLACEHOLDERS - Dense results
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.9\textwidth]{graphmini_dense_1.png}
-\caption{GraphMini experimental results on dense queries (part 1).}
-\label{fig:graphmini-dense1}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.9\textwidth]{graphmini_dense_2.png}
-\caption{GraphMini experimental results on dense queries (part 2).}
-\label{fig:graphmini-dense2}
-\end{figure}
-
-It's replicable but not reproducible.
-
-% FIGURE PLACEHOLDER - Patterns
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.9\textwidth]{graphmini_patterns.png}
-\caption{GraphMini query patterns from original paper---limited to patterns P1--P8 (maximum 7 vertices).}
-\label{fig:graphmini-patterns}
-\end{figure}
-
-\subsubsection{Bug 1: Heap Buffer Overflow in Code Generation}
-
-% FIGURE PLACEHOLDER - ASAN error
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.9\textwidth]{graphmini_asan.png}
-\caption{AddressSanitizer detecting heap-buffer-overflow in GraphMini's \texttt{codegen.cpp} when processing patterns with more than 7 vertices.}
-\label{fig:graphmini-asan}
-\end{figure}
-
-The fundamental limitation lies in a hardcoded buffer in \texttt{pattern.cpp}:
-
-\begin{lstlisting}[style=cppstyle, caption={Hardcoded adjacency matrix in GraphMini (pattern.cpp:201-218).}]
-// pattern.cpp lines 201-218
-int adj_matrix[8][8];  // Only supports <= 7 vertices
-
-void Pattern::build_adjacency_matrix() {
-    // Out-of-bounds access when vertex_count >= 8
-    for (int i = 0; i < vertex_count; i++) {
-        for (int j = 0; j < vertex_count; j++) {
-            adj_matrix[i][j] = has_edge(i, j) ? 1 : 0;
-        }
-    }
-}
-\end{lstlisting}
-
-This hardcoded 8$\times$8 matrix causes out-of-bounds memory access when attempting to process patterns with 8 or more vertices. The AddressSanitizer output (Figure~\ref{fig:graphmini-asan}) confirms a heap-buffer-overflow in \texttt{codegen.cpp:249} during pattern compilation.
-
-\subsubsection{Bug 2: Memory Access Violation}
-
-% FIGURE PLACEHOLDER - LLDB crash
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.9\textwidth]{graphmini_lldb.png}
-\caption{LLDB debugger showing \texttt{EXC\_BAD\_ACCESS} memory corruption from race conditions in GraphMini's thread pool.}
-\label{fig:graphmini-lldb}
-\end{figure}
-
-Additional debugging with LLDB (Figure~\ref{fig:graphmini-lldb}) revealed repeated \texttt{EXC\_BAD\_ACCESS} errors at address \texttt{0x600020000000}, indicating memory corruption from race conditions in the thread synchronisation code:
-
-\begin{lstlisting}[style=cppstyle, caption={Race condition in GraphMini's VertexSetPool (vertex\_set.h:45-67).}]
-// vertex_set.h lines 45-67
-class VertexSetPool {
-    int current_idx;  // No mutex protection!
-
-    VertexSet* allocate() {
-        // Race condition: multiple threads access
-        // current_idx++ simultaneously
-        return &pool[current_idx++];
-    }
-};
-\end{lstlisting}
-
-\subsubsection{Impact on Evaluation}
-
-These bugs explain why the original GraphMini paper only evaluated patterns P1--P8, all of which contain at most 7 vertices. The implementation fundamentally cannot support larger patterns without architectural changes. We have reported this issue on the GraphMini GitHub repository. As a result, GraphMini was excluded from our comparative analysis.
-
-%------------------------------------------------------------------------------
-\subsection{CECI: K-Limit Implementation Failure}
-\label{sec:ceci-bugs}
-%------------------------------------------------------------------------------
-
-The original \texttt{ceci-release} implementation contained multiple bugs that prevented reliable benchmarking with configurable solution limits.
-
-\subsubsection{Bug 1: Hardcoded Override of K Parameter}
-
-\begin{lstlisting}[style=cppstyle, caption={Hardcoded K-limit override in CECI (query\_proc.cpp:486-487).}]
-// query_proc.cpp lines 486-487
-// User-specified K parameter is IGNORED
-if(totalEmbeddings() >= 100000){
-    break;  // Always stops at 100K regardless of K
-}
-\end{lstlisting}
-
-This hardcoded limit overrides any user-specified solution count, making controlled experiments impossible.
-
-\subsubsection{Bug 2: Off-by-One Error}
-
-\begin{lstlisting}[style=cppstyle, caption={Incorrect comparison operator in CECI (query\_proc.cpp:1895).}]
-// query_proc.cpp line 1895
-if (count > limit)  // Should be >=
-    break;
-// Results in overshoot: reports 50000001 instead of 50000000
-\end{lstlisting}
-
-\subsubsection{Bug 3: Non-Atomic Counter}
-
-\begin{lstlisting}[style=cppstyle, caption={Race condition in embedding counter.}]
-// Non-atomic increment causes undercounting
-numberOfEmbeddings_sngl++;  // Race condition
-\end{lstlisting}
-
-\subsubsection{Solution: HKU SubgraphMatching Framework}
-
-Due to these issues, we switched to the HKU SubgraphMatching framework which provides a working \texttt{CECI\_OMP} engine:
-
-\begin{lstlisting}[style=bashstyle, caption={Working CECI configuration using HKU framework.}]
-OMP_NUM_THREADS=16 ./SubgraphMatching.out \
-    -filter CECI -engine CECI_OMP -num 50000000
-
-# Result: 50M embeddings in 48s
-# (vs original: timeout at 300s, 0 reported)
-\end{lstlisting}
-
-%==============================================================================
-\section{Synthetic Validation}
-\label{sec:synthetic}
+\chapter{Synthetic Validation}
+\label{ch:synthetic}
 %==============================================================================
 
 To validate the findings from real-world datasets and isolate the effects of graph topology on algorithm performance, we conducted controlled experiments on synthetic graphs with known structural properties. This validation complements the real-world evaluation by removing confounding factors such as label distributions, community structures, and dataset-specific anomalies.
 
 %------------------------------------------------------------------------------
-\subsection{Synthetic Graph Generation}
+\section{Synthetic Graph Generation}
 \label{sec:synthetic-generation}
 %------------------------------------------------------------------------------
 
@@ -793,190 +661,64 @@ Four query types were evaluated: sparse 8-vertex, dense 8-vertex, sparse 16-vert
 All experiments used identical parameters to the real-world evaluation: $K$-limit of 500 million embeddings, timeout of 120 seconds, and 64 threads. This configuration enables direct comparison between synthetic and real-world results.
 
 %------------------------------------------------------------------------------
-\subsection{RQ1 Validation: Algorithm Performance Comparison}
+\section{RQ1: Algorithm Performance on Synthetic Graphs}
 \label{sec:synthetic-rq1}
 %------------------------------------------------------------------------------
 
-Figure~\ref{fig:synthetic-rq1} presents the average throughput (EPS) across all synthetic graph configurations, providing a direct comparison of algorithm performance on controlled inputs.
-
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{figures/synthetic_rq1_comparison.png}
+\includegraphics[width=0.75\textwidth]{synthetic_rq1_comparison.png}
 \caption{RQ1 Validation: Average algorithm performance across all synthetic graphs. CECI achieves 29.1M EPS, SLF 167K EPS, and VF3PDL 10.2K EPS.}
 \label{fig:synthetic-rq1}
 \end{figure}
 
-The synthetic results reveal a striking performance hierarchy that corroborates the real-world findings:
+Figure~\ref{fig:synthetic-rq1} presents the average throughput across all synthetic graph configurations. The results reveal a substantial performance disparity between index-based and traversal-based approaches. CECI maintains an average throughput of 29 million EPS across all configurations, while SLF achieves 167K EPS and VF3PDL is limited to approximately 10K EPS.
 
-\begin{itemize}
-    \item \textbf{CECI}: 29,138,381 EPS (dominant)
-    \item \textbf{SLF}: 167,446 EPS (174$\times$ slower than CECI)
-    \item \textbf{VF3PDL}: 10,170 EPS (2,865$\times$ slower than CECI)
-\end{itemize}
-
-This performance ordering matches the real-world results where CECI consistently achieved the highest throughput. The magnitude of the performance gap is even more pronounced on synthetic graphs, suggesting that the absence of exploitable structure disproportionately impacts traversal-based algorithms.
-
-\paragraph{Validation of RQ1.}
-The synthetic experiments confirm that CECI's index-based parallel enumeration achieves superior throughput regardless of graph structure. The consistent $\sim$30M EPS across diverse synthetic configurations demonstrates that CECI's performance is structure-independent, validating our real-world observation that index-based approaches dominate in absolute throughput.
+These results are consistent with the performance trends observed on real-world datasets, where CECI consistently achieved the highest throughput. However, the performance gap is significantly amplified in the synthetic environment. On real-world graphs, traversal-based algorithms typically lag CECI by one to two orders of magnitude; on synthetic graphs, this gap expands to nearly three orders of magnitude. This amplification suggests that traversal-based algorithms rely heavily on the structural properties present in real-world graphs, such as community structure and degree heterogeneity, to prune the search space effectively. When such structure is absent, their performance degrades disproportionately.
 
 %------------------------------------------------------------------------------
-\subsection{RQ2 Validation: Topology and Density Effects}
+\section{RQ2: Topology Effects on Erdős-Rényi and Barabási-Albert Graphs}
 \label{sec:synthetic-rq2}
 %------------------------------------------------------------------------------
 
-To validate RQ2's findings on topology-dependent performance, we compare algorithm behaviour across Erdős-Rényi (structureless) and Barabási-Albert (scale-free) graphs.
-
-\subsubsection{Erdős-Rényi Random Graphs}
-
-Figure~\ref{fig:synthetic-rq2-er} presents algorithm performance on ER graphs with varying edge density using sparse 8-vertex queries.
-
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/synthetic_rq2_er.png}
+\includegraphics[width=0.85\textwidth]{synthetic_rq2_er.png}
 \caption{RQ2 Validation: Algorithm performance on Erdős-Rényi $G(n,p)$ graphs. VF3PDL exhibits severe degradation (4,387 $\rightarrow$ 99 EPS) as graph size increases, while CECI maintains constant $\sim$30M EPS.}
 \label{fig:synthetic-rq2-er}
 \end{figure}
 
-The ER graph results reveal critical insights into topology-dependent behaviour:
-
-\begin{itemize}
-    \item \textbf{CECI} maintains consistent throughput of approximately 28--33M EPS across all graph sizes, demonstrating complete independence from graph structure.
-    \item \textbf{SLF} exhibits moderate degradation from 274K EPS (er\_250k) to 104K EPS (er\_3m), representing a 2.6$\times$ slowdown as graph density increases.
-    \item \textbf{VF3PDL} suffers catastrophic degradation from 4,387 EPS (er\_250k) to just 99 EPS (er\_3m)---a \textbf{44$\times$ performance collapse}.
-\end{itemize}
-
-Table~\ref{tab:synthetic-er-sparse} provides detailed EPS values for sparse queries on ER graphs.
-
-\begin{table}[htbp]
-\centering
-\caption{Sparse query performance on Erdős-Rényi graphs (EPS).}
-\label{tab:synthetic-er-sparse}
-\begin{tabular}{lrrr}
-\toprule
-\textbf{Graph} & \textbf{CECI} & \textbf{SLF} & \textbf{VF3PDL} \\
-\midrule
-er\_250k (250K edges) & 28,043,463 & 274,415 & 4,387 \\
-er\_500k (500K edges) & 31,567,415 & 254,921 & 1,569 \\
-er\_1m (1M edges) & 32,569,885 & 268,008 & 608 \\
-er\_2m (2M edges) & 32,666,319 & 186,658 & 192 \\
-er\_3m (3M edges) & 30,556,861 & 103,936 & 99 \\
-\midrule
-\textbf{Degradation} & 1.0$\times$ & 2.6$\times$ & \textbf{44$\times$} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsubsection{Barabási-Albert Scale-Free Graphs}
-
-Figure~\ref{fig:synthetic-rq2-ba} presents algorithm performance on BA graphs, which possess hub structures due to preferential attachment.
+Figure~\ref{fig:synthetic-rq2-er} presents algorithm performance on Erdős-Rényi graphs, which exhibit uniform degree distributions and lack community structure. CECI maintains stable throughput of approximately 30 million EPS regardless of graph scale. SLF exhibits moderate degradation, with throughput dropping from 274K EPS on the smallest graph to 104K EPS on the largest, representing a 2.6-fold reduction. VF3PDL suffers severe degradation, with throughput falling from 4,387 EPS to just 99 EPS as graph size increases from 250K to 3M edges. This 44-fold reduction confirms that VF3PDL's pruning heuristics depend on discriminatory structural features to guide the search. In random graphs where local neighbourhoods are statistically uniform, these heuristics fail to prune effectively, forcing the algorithm into near-exhaustive exploration.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/synthetic_rq2_ba.png}
+\includegraphics[width=0.85\textwidth]{synthetic_rq2_ba.png}
 \caption{RQ2 Validation: Algorithm performance on Barabási-Albert scale-free graphs. Hub structure provides marginally better pruning opportunities for VF3PDL compared to ER graphs.}
 \label{fig:synthetic-rq2-ba}
 \end{figure}
 
-The BA graph results show similar patterns with notable differences:
-
-\begin{itemize}
-    \item \textbf{CECI} maintains consistent $\sim$30--35M EPS, again demonstrating structure independence.
-    \item \textbf{SLF} achieves slightly higher throughput on BA graphs (143K--301K EPS) compared to ER graphs, suggesting that hub structures provide modest benefits for stream-based filtering.
-    \item \textbf{VF3PDL} still degrades significantly (133 $\rightarrow$ 12 EPS), but the degradation is less severe than on ER graphs, indicating that scale-free structure provides some pruning opportunities.
-\end{itemize}
-
-Table~\ref{tab:synthetic-ba-sparse} provides detailed EPS values for sparse queries on BA graphs.
-
-\begin{table}[htbp]
-\centering
-\caption{Sparse query performance on Barabási-Albert graphs (EPS).}
-\label{tab:synthetic-ba-sparse}
-\begin{tabular}{lrrr}
-\toprule
-\textbf{Graph} & \textbf{CECI} & \textbf{SLF} & \textbf{VF3PDL} \\
-\midrule
-ba\_50k (50K edges) & 34,507,994 & 143,507 & 133 \\
-ba\_100k (100K edges) & 34,783,802 & 185,848 & 46 \\
-ba\_250k (250K edges) & 35,432,489 & 300,630 & 30 \\
-ba\_500k (500K edges) & 35,248,839 & 123,831 & 33 \\
-ba\_750k (750K edges) & 35,653,158 & 131,180 & 12 \\
-\midrule
-\textbf{Degradation} & 1.0$\times$ & 2.3$\times$ & \textbf{11$\times$} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Validation of RQ2.}
-The synthetic experiments validate RQ2's finding that graph topology significantly affects traversal-based algorithm performance. On structureless ER graphs, VF3PDL's pruning heuristics become ineffective, resulting in 44$\times$ degradation. On BA graphs with hub structures, degradation is reduced to 11$\times$, confirming that degree heterogeneity provides exploitable structure for pruning. CECI's consistent performance across both topologies validates that index-based approaches are topology-independent.
+Figure~\ref{fig:synthetic-rq2-ba} presents results on Barabási-Albert graphs, which model scale-free networks with power-law degree distributions. The presence of hub vertices in BA graphs provides anchor points for traversal heuristics, enabling more effective pruning than on random graphs. CECI remains stable at 30-35 million EPS. VF3PDL shows improved resilience compared to the ER case, with throughput dropping from 133 to 12 EPS across the tested range. This 11-fold reduction, compared to the 44-fold reduction observed on ER graphs, indicates that hub structure partially compensates for the lack of community organisation. However, traversal-based throughput remains orders of magnitude lower than CECI, demonstrating that while hubs mitigate degradation, they do not eliminate the fundamental advantage of index-based enumeration.
 
 %------------------------------------------------------------------------------
-\subsection{RQ3 Validation: Pruning vs Parallelism Tradeoff}
+\section{RQ3: The Pruning-Structure Dependency}
 \label{sec:synthetic-rq3}
 %------------------------------------------------------------------------------
 
-Figure~\ref{fig:synthetic-rq3} directly illustrates the pruning-parallelism tradeoff by comparing CECI (parallel enumeration) against VF3PDL (pruning-based traversal) on structureless ER graphs.
-
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/synthetic_er.png}
+\includegraphics[width=0.85\textwidth]{synthetic_er.png}
 \caption{RQ3 Validation: Pruning (VF3PDL) vs parallel enumeration (CECI) on Erdős-Rényi graphs. The 5-order-of-magnitude performance gap demonstrates that pruning strategies fail without exploitable structure.}
 \label{fig:synthetic-rq3}
 \end{figure}
 
-The synthetic experiments provide definitive evidence for the pruning-parallelism tradeoff:
+Figure~\ref{fig:synthetic-rq3} directly compares CECI and VF3PDL performance across ER graphs of increasing size, providing definitive evidence for Research Question 3. On the largest ER graph with 3 million edges, CECI achieves 30.5 million EPS while VF3PDL achieves only 99 EPS. This represents a performance ratio of approximately 308,000 to 1.
 
-\begin{itemize}
-    \item \textbf{VF3PDL's pruning relies on structure}: On ER graphs lacking community structure, degree heterogeneity, or clustering, VF3PDL's traversal heuristics cannot effectively reduce the search space. The algorithm degenerates to near-exhaustive exploration, achieving only 99 EPS on er\_3m.
+This disparity stands in stark contrast to the gaps observed on real-world graphs, where VF3PDL typically trails CECI by a factor of 10 to 100. The difference arises because real-world graphs possess exploitable structure: high clustering coefficients, skewed degree distributions, and community organisation that pruning heuristics can leverage to eliminate large portions of the search space. When this structure is removed, as in ER graphs, the cost of traversal becomes prohibitive.
 
-    \item \textbf{CECI's parallelism is structure-agnostic}: The index-based parallel enumeration maintains consistent throughput of $\sim$30M EPS regardless of topological properties. This demonstrates that CECI's performance derives from efficient parallel work distribution rather than structural exploitation.
-
-    \item \textbf{Performance gap quantification}: On the largest ER graph (3M edges), CECI achieves 30,556,861 EPS compared to VF3PDL's 99 EPS---a performance ratio of \textbf{308,655:1} (over 300,000$\times$ faster).
-\end{itemize}
-
-\paragraph{Comparison with Real-World Results.}
-On real-world graphs such as ENRON and DBLP, VF3PDL typically achieves performance within 10--100$\times$ of CECI. The synthetic results reveal that this relatively competitive performance depends entirely on exploitable graph structure. When structure is absent, the performance gap expands to over 300,000$\times$, validating RQ3's conclusion that pruning effectiveness and parallel scalability represent fundamentally different algorithmic strategies with topology-dependent tradeoffs.
-
-\paragraph{Validation of RQ3.}
-The synthetic experiments conclusively validate RQ3: there is a fundamental tradeoff between pruning effectiveness and parallel scalability, mediated by graph topology. Algorithms optimised for pruning (VF3PDL) achieve competitive performance only when graph structure provides pruning opportunities. On structureless graphs, parallel enumeration (CECI) dominates by orders of magnitude.
+CECI's index-based enumeration, by contrast, operates independently of graph structure. The algorithm constructs a global index during preprocessing and enumerates matches through parallel set intersections, a process that does not rely on local structural features to achieve efficiency. This structure-agnostic property makes CECI the only viable solution for graphs lacking exploitable organisation, while also explaining its consistent dominance across all tested configurations.
 
 %------------------------------------------------------------------------------
-\subsection{Dense Query Analysis}
-\label{sec:synthetic-dense}
-%------------------------------------------------------------------------------
-
-Dense query experiments revealed an important density threshold phenomenon. Table~\ref{tab:synthetic-dense} summarises dense 8-vertex query results across both graph models.
-
-\begin{table}[htbp]
-\centering
-\caption{Dense 8-vertex query results on synthetic graphs. Zero matches indicate insufficient graph density for the query pattern.}
-\label{tab:synthetic-dense}
-\begin{tabular}{llrrr}
-\toprule
-\textbf{Model} & \textbf{Graph} & \textbf{CECI} & \textbf{SLF} & \textbf{VF3PDL} \\
-\midrule
-ER & er\_250k & 0 & 0 & 0 \\
-ER & er\_500k & 330,873 & 266,894 & 256,530 \\
-ER & er\_1m & 10,433,355 & 166,768 & 4,166 \\
-ER & er\_2m & 28,687,873 & 108,246 & 815 \\
-ER & er\_3m & 29,798,419 & 133,798 & 290 \\
-\midrule
-BA & ba\_50k & 0 & 0 & 0 \\
-BA & ba\_100k & 24,136,624 & 225,095 & 296 \\
-BA & ba\_250k & 31,444,125 & 141,857 & 98 \\
-BA & ba\_500k & 31,703,235 & 157,289 & 81 \\
-BA & ba\_750k & 33,033,988 & 229,888 & 45 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Density Crossover Effect.}
-The zero-match results on sparse graphs (er\_250k, ba\_50k) demonstrate a \textit{density crossover} threshold: dense query patterns require minimum graph density to exist. For 8-vertex near-clique patterns, the threshold lies between average degree 10 (er\_250k: 0 matches) and average degree 20 (er\_500k: 11.7M matches). This validates the RQ2 finding that query-graph density matching is critical for subgraph isomorphism performance.
-
-\paragraph{Dense 16-Vertex Results.}
-Dense 16-vertex queries produced zero matches across nearly all synthetic configurations, indicating that the generated graphs lack sufficient local density to contain such patterns. This is consistent with the theoretical properties of ER and BA models, which produce globally sparse graphs even at high edge counts.
-
-%------------------------------------------------------------------------------
-\subsection{Summary of Synthetic Validation}
+\section{Summary of Synthetic Validation}
 \label{sec:synthetic-summary}
 %------------------------------------------------------------------------------
 
@@ -992,7 +734,7 @@ The synthetic validation experiments strengthen the generalisability of findings
 \midrule
 RQ1 & CECI achieves highest throughput & Confirmed: 29M vs 167K vs 10K EPS average \\
 RQ2 & Topology affects algorithm performance & Confirmed: VF3PDL degrades 44$\times$ on ER, 11$\times$ on BA \\
-RQ3 & Pruning-parallelism tradeoff exists & Confirmed: 300,000$\times$ gap on structureless graphs \\
+RQ3 & Pruning-parallelism tradeoff exists & Confirmed: 308,000$\times$ gap on structureless graphs \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1001,22 +743,159 @@ The controlled synthetic experiments demonstrate that:
 
 \begin{enumerate}
     \item \textbf{CECI's dominance is structure-independent}: Consistent $\sim$30M EPS across all topologies validates that index-based parallel enumeration provides robust performance regardless of graph properties.
-
     \item \textbf{VF3PDL's pruning requires structure}: The 44$\times$ degradation on ER graphs (vs 11$\times$ on BA graphs) quantifies the dependence of pruning-based algorithms on exploitable topological features.
-
-    \item \textbf{The tradeoff is fundamental}: The 300,000$\times$ performance gap on structureless graphs represents the extreme case of the pruning-parallelism tradeoff, validating that these represent fundamentally different algorithmic strategies.
+    \item \textbf{The tradeoff is fundamental}: The 308,000$\times$ performance gap on structureless graphs represents the extreme case of the pruning-parallelism tradeoff, validating that these represent fundamentally different algorithmic strategies.
 \end{enumerate}
 
 These findings generalise beyond the specific real-world datasets evaluated, providing confidence that the observed performance characteristics reflect fundamental algorithmic properties rather than dataset-specific artifacts.
 
 %==============================================================================
-\section{Conclusion}
-\label{sec:conclusion}
+\chapter{Challenges in Reproducibility}
+\label{ch:reproducibility}
+%==============================================================================
+
+During the course of this evaluation, we encountered significant reproducibility challenges with two of the algorithms originally planned for inclusion: GraphMini and the original CECI implementation. These issues substantially impacted the scope of our comparative analysis.
+
+%------------------------------------------------------------------------------
+\section{GraphMini: Critical Implementation Bugs}
+\label{sec:graphmini}
+%------------------------------------------------------------------------------
+
+As mentioned in Part B of this thesis, I had encountered significant issues with GraphMini which was not mentioned by the authors. The algorithm was unable to handle any graph inputs with more than 4 vertices and I have raised this issue on Github. The results I have collected so far are:
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{graphmini_dense_1.png}
+\caption{GraphMini experimental results on dense queries (part 1).}
+\label{fig:graphmini-dense1}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{graphmini_dense_2.png}
+\caption{GraphMini experimental results on dense queries (part 2).}
+\label{fig:graphmini-dense2}
+\end{figure}
+
+It's replicable but not reproducible.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{graphmini_patterns.png}
+\caption{GraphMini query patterns from original paper---limited to patterns P1--P8 (maximum 7 vertices).}
+\label{fig:graphmini-patterns}
+\end{figure}
+
+\subsection{Bug 1: Heap Buffer Overflow in Code Generation}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{graphmini_asan.png}
+\caption{AddressSanitizer detecting heap-buffer-overflow in GraphMini's \texttt{codegen.cpp} when processing patterns with more than 7 vertices.}
+\label{fig:graphmini-asan}
+\end{figure}
+
+The fundamental limitation lies in a hardcoded buffer in \texttt{pattern.cpp}:
+
+\begin{lstlisting}[style=cppstyle, caption={Hardcoded adjacency matrix in GraphMini (pattern.cpp:201-218).}]
+// pattern.cpp lines 201-218
+int adj_matrix[8][8];  // Only supports <= 7 vertices
+
+void Pattern::build_adjacency_matrix() {
+    // Out-of-bounds access when vertex_count >= 8
+    for (int i = 0; i < vertex_count; i++) {
+        for (int j = 0; j < vertex_count; j++) {
+            adj_matrix[i][j] = has_edge(i, j) ? 1 : 0;
+        }
+    }
+}
+\end{lstlisting}
+
+This hardcoded 8$\times$8 matrix causes out-of-bounds memory access when attempting to process patterns with 8 or more vertices. The AddressSanitizer output (Figure~\ref{fig:graphmini-asan}) confirms a heap-buffer-overflow in \texttt{codegen.cpp:249} during pattern compilation.
+
+\subsection{Bug 2: Memory Access Violation}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{graphmini_lldb.png}
+\caption{LLDB debugger showing \texttt{EXC\_BAD\_ACCESS} memory corruption from race conditions in GraphMini's thread pool.}
+\label{fig:graphmini-lldb}
+\end{figure}
+
+Additional debugging with LLDB (Figure~\ref{fig:graphmini-lldb}) revealed repeated \texttt{EXC\_BAD\_ACCESS} errors at address \texttt{0x600020000000}, indicating memory corruption from race conditions in the thread synchronisation code:
+
+\begin{lstlisting}[style=cppstyle, caption={Race condition in GraphMini's VertexSetPool (vertex\_set.h:45-67).}]
+// vertex_set.h lines 45-67
+class VertexSetPool {
+    int current_idx;  // No mutex protection!
+
+    VertexSet* allocate() {
+        // Race condition: multiple threads access
+        // current_idx++ simultaneously
+        return &pool[current_idx++];
+    }
+};
+\end{lstlisting}
+
+\subsection{Impact on Evaluation}
+
+These bugs explain why the original GraphMini paper only evaluated patterns P1--P8, all of which contain at most 7 vertices. The implementation fundamentally cannot support larger patterns without architectural changes. We have reported this issue on the GraphMini GitHub repository. As a result, GraphMini was excluded from our comparative analysis.
+
+%------------------------------------------------------------------------------
+\section{CECI: K-Limit Implementation Failure}
+\label{sec:ceci-bugs}
+%------------------------------------------------------------------------------
+
+The original \texttt{ceci-release} implementation contained multiple bugs that prevented reliable benchmarking with configurable solution limits.
+
+\subsection{Bug 1: Hardcoded Override of K Parameter}
+
+\begin{lstlisting}[style=cppstyle, caption={Hardcoded K-limit override in CECI (query\_proc.cpp:486-487).}]
+// query_proc.cpp lines 486-487
+// User-specified K parameter is IGNORED
+if(totalEmbeddings() >= 100000){
+    break;  // Always stops at 100K regardless of K
+}
+\end{lstlisting}
+
+This hardcoded limit overrides any user-specified solution count, making controlled experiments impossible.
+
+\subsection{Bug 2: Off-by-One Error}
+
+\begin{lstlisting}[style=cppstyle, caption={Incorrect comparison operator in CECI (query\_proc.cpp:1895).}]
+// query_proc.cpp line 1895
+if (count > limit)  // Should be >=
+    break;
+// Results in overshoot: reports 50000001 instead of 50000000
+\end{lstlisting}
+
+\subsection{Bug 3: Non-Atomic Counter}
+
+\begin{lstlisting}[style=cppstyle, caption={Race condition in embedding counter.}]
+// Non-atomic increment causes undercounting
+numberOfEmbeddings_sngl++;  // Race condition
+\end{lstlisting}
+
+\subsection{Solution: HKU SubgraphMatching Framework}
+
+Due to these issues, we switched to the HKU SubgraphMatching framework which provides a working \texttt{CECI\_OMP} engine:
+
+\begin{lstlisting}[style=bashstyle, caption={Working CECI configuration using HKU framework.}]
+OMP_NUM_THREADS=16 ./SubgraphMatching.out \
+    -filter CECI -engine CECI_OMP -num 50000000
+
+# Result: 50M embeddings in 48s
+# (vs original: timeout at 300s, 0 reported)
+\end{lstlisting}
+
+%==============================================================================
+\chapter{Conclusion}
+\label{ch:conclusion}
 %==============================================================================
 
 This thesis presented a comprehensive empirical evaluation of parallel subgraph isomorphism algorithms, addressing three research questions through systematic experimentation on both real-world and synthetic datasets.
 
-\subsection{Summary of Findings}
+\section{Summary of Findings}
 
 \paragraph{RQ1: Parallel Scaling Behaviour.}
 We found that parallel scaling characteristics vary dramatically across algorithms. VF3PDL achieves superlinear speedups (up to 78$\times$ on 64 threads) through effective work partitioning, but incurs substantial memory overhead (27--38$\times$ increase). CECI exhibits negative scaling due to synchronisation overhead on shared index structures. SLF occupies a middle ground with dataset-dependent scaling behaviour.
@@ -1025,9 +904,9 @@ We found that parallel scaling characteristics vary dramatically across algorith
 Graph structure critically determines algorithm effectiveness. Index-based approaches (CECI) excel on sparse and planar graphs where traversal heuristics fail. Traversal-based approaches (SLF, VF3PDL) perform better on dense graphs with degree heterogeneity. Synthetic validation confirmed that VF3PDL degrades 44$\times$ on structureless Erdős-Rényi graphs compared to 11$\times$ on scale-free Barabási-Albert graphs.
 
 \paragraph{RQ3: Pruning vs Parallelism Tradeoff.}
-We identified a fundamental tradeoff between pruning effectiveness and parallel scalability. Algorithms with aggressive pruning (CECI) achieve high single-thread throughput but poor scaling. Algorithms with minimal pruning (VF3PDL) scale well but depend on exploitable graph structure. Synthetic experiments demonstrated a 300,000$\times$ performance gap between CECI and VF3PDL on structureless graphs, validating this tradeoff.
+We identified a fundamental tradeoff between pruning effectiveness and parallel scalability. Algorithms with aggressive pruning (CECI) achieve high single-thread throughput but poor scaling. Algorithms with minimal pruning (VF3PDL) scale well but depend on exploitable graph structure. Synthetic experiments demonstrated a 308,000$\times$ performance gap between CECI and VF3PDL on structureless graphs, validating this tradeoff.
 
-\subsection{Practical Recommendations}
+\section{Practical Recommendations}
 
 Based on our findings, we provide the following algorithm selection guidelines:
 
@@ -1038,11 +917,11 @@ Based on our findings, we provide the following algorithm selection guidelines:
     \item \textbf{Massively parallel systems}: Consider VF3PDL if memory permits and graph structure supports pruning.
 \end{itemize}
 
-\subsection{Limitations}
+\section{Limitations}
 
 This study has several limitations. First, the evaluation was conducted on a shared server environment, introducing potential variability from competing workloads. Second, GraphMini was excluded due to implementation bugs, limiting the scope of algorithm comparison. Third, synthetic graphs, while providing controlled validation, may not capture all properties of real-world networks.
 
-\subsection{Future Work}
+\section{Future Work}
 
 Several directions merit further investigation:
 
@@ -1054,8 +933,9 @@ Several directions merit further investigation:
 \end{itemize}
 
 %==============================================================================
-\section*{References}
-\label{sec:references}
+\chapter*{References}
+\addcontentsline{toc}{chapter}{References}
+\label{ch:references}
 %==============================================================================
 
 \begin{thebibliography}{99}
@@ -1121,4 +1001,5 @@ SNAP Datasets: Stanford Large Network Dataset Collection.
 \url{http://snap.stanford.edu/data}
 
 \end{thebibliography}
+
 \end{document}
