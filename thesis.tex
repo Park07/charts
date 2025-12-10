@@ -1,4 +1,4 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[12pt,a4paper]{article}
 
 % Packages
 \usepackage[utf8]{inputenc}
@@ -18,7 +18,9 @@
 \usepackage{tabularx}
 \usepackage{float}
 \usepackage[margin=2cm]{geometry}
-\usepackage{times}  % Times font (IEEE style)
+\usepackage{helvet}  % Times font (IEEE style)
+\renewcommand{\familydefault}{\sfdefault}  % Use sans-serif as default
+
 \usepackage{titlesec}
 \usetikzlibrary{positioning,shapes.geometric,arrows.meta}
 
@@ -106,6 +108,14 @@
     citecolor=blue,
     urlcolor=blue
 }
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{William Park}
+\fancyhead[R]{A Survey on Parallel Subgraph Matching}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
 
 \begin{document}
 
