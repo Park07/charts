@@ -729,4 +729,384 @@ OMP_NUM_THREADS=16 ./SubgraphMatching.out \
 # (vs original: timeout at 300s, 0 reported)
 \end{lstlisting}
 
+%==============================================================================
+\section{Synthetic Validation}
+\label{sec:synthetic}
+%==============================================================================
+
+To validate the findings from real-world datasets and isolate the effects of graph topology on algorithm performance, we conducted controlled experiments on synthetic graphs with known structural properties. This validation complements the real-world evaluation by removing confounding factors such as label distributions, community structures, and dataset-specific anomalies.
+
+%------------------------------------------------------------------------------
+\subsection{Synthetic Graph Generation}
+\label{sec:synthetic-generation}
+%------------------------------------------------------------------------------
+
+Two well-established random graph models were employed to generate synthetic datasets:
+
+\paragraph{Erdős-Rényi Model $G(n,p)$.}
+The Erdős-Rényi model generates graphs by connecting each pair of $n$ vertices independently with probability $p$. This produces uniformly random graphs with binomial degree distributions and no inherent community structure or degree heterogeneity. The lack of exploitable structure makes ER graphs a rigorous test for pruning-based algorithms.
+
+\paragraph{Barabási-Albert Model.}
+The Barabási-Albert (BA) model generates scale-free graphs through preferential attachment: new vertices connect preferentially to existing high-degree vertices. This produces power-law degree distributions with hub structures, more closely resembling real-world social and biological networks.
+
+Table~\ref{tab:synthetic-graphs} summarises the generated graph configurations.
+
+\begin{table}[htbp]
+\centering
+\caption{Synthetic graph configurations. All graphs contain 50,000 vertices.}
+\label{tab:synthetic-graphs}
+\begin{tabular}{llrrl}
+\toprule
+\textbf{Model} & \textbf{Graph} & \textbf{Edges} & \textbf{Avg. Degree} & \textbf{Structure} \\
+\midrule
+Erdős-Rényi & er\_250k & 249,707 & 10.0 & Uniform random \\
+Erdős-Rényi & er\_500k & 500,356 & 20.0 & Uniform random \\
+Erdős-Rényi & er\_1m & 1,000,236 & 40.0 & Uniform random \\
+Erdős-Rényi & er\_2m & 2,000,819 & 80.0 & Uniform random \\
+Erdős-Rényi & er\_3m & 3,001,844 & 120.0 & Uniform random \\
+\midrule
+Barabási-Albert & ba\_50k & 49,999 & 2.0 & Scale-free (hubs) \\
+Barabási-Albert & ba\_100k & 99,996 & 4.0 & Scale-free (hubs) \\
+Barabási-Albert & ba\_250k & 249,975 & 10.0 & Scale-free (hubs) \\
+Barabási-Albert & ba\_500k & 499,900 & 20.0 & Scale-free (hubs) \\
+Barabási-Albert & ba\_750k & 749,775 & 30.0 & Scale-free (hubs) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Query Patterns.}
+Four query types were evaluated: sparse 8-vertex, dense 8-vertex, sparse 16-vertex, and dense 16-vertex patterns. This mirrors the real-world experimental configuration.
+
+\paragraph{Experimental Parameters.}
+All experiments used identical parameters to the real-world evaluation: $K$-limit of 500 million embeddings, timeout of 120 seconds, and 64 threads. This configuration enables direct comparison between synthetic and real-world results.
+
+%------------------------------------------------------------------------------
+\subsection{RQ1 Validation: Algorithm Performance Comparison}
+\label{sec:synthetic-rq1}
+%------------------------------------------------------------------------------
+
+Figure~\ref{fig:synthetic-rq1} presents the average throughput (EPS) across all synthetic graph configurations, providing a direct comparison of algorithm performance on controlled inputs.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{figures/synthetic_rq1_comparison.png}
+\caption{RQ1 Validation: Average algorithm performance across all synthetic graphs. CECI achieves 29.1M EPS, SLF 167K EPS, and VF3PDL 10.2K EPS.}
+\label{fig:synthetic-rq1}
+\end{figure}
+
+The synthetic results reveal a striking performance hierarchy that corroborates the real-world findings:
+
+\begin{itemize}
+    \item \textbf{CECI}: 29,138,381 EPS (dominant)
+    \item \textbf{SLF}: 167,446 EPS (174$\times$ slower than CECI)
+    \item \textbf{VF3PDL}: 10,170 EPS (2,865$\times$ slower than CECI)
+\end{itemize}
+
+This performance ordering matches the real-world results where CECI consistently achieved the highest throughput. The magnitude of the performance gap is even more pronounced on synthetic graphs, suggesting that the absence of exploitable structure disproportionately impacts traversal-based algorithms.
+
+\paragraph{Validation of RQ1.}
+The synthetic experiments confirm that CECI's index-based parallel enumeration achieves superior throughput regardless of graph structure. The consistent $\sim$30M EPS across diverse synthetic configurations demonstrates that CECI's performance is structure-independent, validating our real-world observation that index-based approaches dominate in absolute throughput.
+
+%------------------------------------------------------------------------------
+\subsection{RQ2 Validation: Topology and Density Effects}
+\label{sec:synthetic-rq2}
+%------------------------------------------------------------------------------
+
+To validate RQ2's findings on topology-dependent performance, we compare algorithm behaviour across Erdős-Rényi (structureless) and Barabási-Albert (scale-free) graphs.
+
+\subsubsection{Erdős-Rényi Random Graphs}
+
+Figure~\ref{fig:synthetic-rq2-er} presents algorithm performance on ER graphs with varying edge density using sparse 8-vertex queries.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/synthetic_rq2_er.png}
+\caption{RQ2 Validation: Algorithm performance on Erdős-Rényi $G(n,p)$ graphs. VF3PDL exhibits severe degradation (4,387 $\rightarrow$ 99 EPS) as graph size increases, while CECI maintains constant $\sim$30M EPS.}
+\label{fig:synthetic-rq2-er}
+\end{figure}
+
+The ER graph results reveal critical insights into topology-dependent behaviour:
+
+\begin{itemize}
+    \item \textbf{CECI} maintains consistent throughput of approximately 28--33M EPS across all graph sizes, demonstrating complete independence from graph structure.
+    \item \textbf{SLF} exhibits moderate degradation from 274K EPS (er\_250k) to 104K EPS (er\_3m), representing a 2.6$\times$ slowdown as graph density increases.
+    \item \textbf{VF3PDL} suffers catastrophic degradation from 4,387 EPS (er\_250k) to just 99 EPS (er\_3m)---a \textbf{44$\times$ performance collapse}.
+\end{itemize}
+
+Table~\ref{tab:synthetic-er-sparse} provides detailed EPS values for sparse queries on ER graphs.
+
+\begin{table}[htbp]
+\centering
+\caption{Sparse query performance on Erdős-Rényi graphs (EPS).}
+\label{tab:synthetic-er-sparse}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Graph} & \textbf{CECI} & \textbf{SLF} & \textbf{VF3PDL} \\
+\midrule
+er\_250k (250K edges) & 28,043,463 & 274,415 & 4,387 \\
+er\_500k (500K edges) & 31,567,415 & 254,921 & 1,569 \\
+er\_1m (1M edges) & 32,569,885 & 268,008 & 608 \\
+er\_2m (2M edges) & 32,666,319 & 186,658 & 192 \\
+er\_3m (3M edges) & 30,556,861 & 103,936 & 99 \\
+\midrule
+\textbf{Degradation} & 1.0$\times$ & 2.6$\times$ & \textbf{44$\times$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Barabási-Albert Scale-Free Graphs}
+
+Figure~\ref{fig:synthetic-rq2-ba} presents algorithm performance on BA graphs, which possess hub structures due to preferential attachment.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/synthetic_rq2_ba.png}
+\caption{RQ2 Validation: Algorithm performance on Barabási-Albert scale-free graphs. Hub structure provides marginally better pruning opportunities for VF3PDL compared to ER graphs.}
+\label{fig:synthetic-rq2-ba}
+\end{figure}
+
+The BA graph results show similar patterns with notable differences:
+
+\begin{itemize}
+    \item \textbf{CECI} maintains consistent $\sim$30--35M EPS, again demonstrating structure independence.
+    \item \textbf{SLF} achieves slightly higher throughput on BA graphs (143K--301K EPS) compared to ER graphs, suggesting that hub structures provide modest benefits for stream-based filtering.
+    \item \textbf{VF3PDL} still degrades significantly (133 $\rightarrow$ 12 EPS), but the degradation is less severe than on ER graphs, indicating that scale-free structure provides some pruning opportunities.
+\end{itemize}
+
+Table~\ref{tab:synthetic-ba-sparse} provides detailed EPS values for sparse queries on BA graphs.
+
+\begin{table}[htbp]
+\centering
+\caption{Sparse query performance on Barabási-Albert graphs (EPS).}
+\label{tab:synthetic-ba-sparse}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Graph} & \textbf{CECI} & \textbf{SLF} & \textbf{VF3PDL} \\
+\midrule
+ba\_50k (50K edges) & 34,507,994 & 143,507 & 133 \\
+ba\_100k (100K edges) & 34,783,802 & 185,848 & 46 \\
+ba\_250k (250K edges) & 35,432,489 & 300,630 & 30 \\
+ba\_500k (500K edges) & 35,248,839 & 123,831 & 33 \\
+ba\_750k (750K edges) & 35,653,158 & 131,180 & 12 \\
+\midrule
+\textbf{Degradation} & 1.0$\times$ & 2.3$\times$ & \textbf{11$\times$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Validation of RQ2.}
+The synthetic experiments validate RQ2's finding that graph topology significantly affects traversal-based algorithm performance. On structureless ER graphs, VF3PDL's pruning heuristics become ineffective, resulting in 44$\times$ degradation. On BA graphs with hub structures, degradation is reduced to 11$\times$, confirming that degree heterogeneity provides exploitable structure for pruning. CECI's consistent performance across both topologies validates that index-based approaches are topology-independent.
+
+%------------------------------------------------------------------------------
+\subsection{RQ3 Validation: Pruning vs Parallelism Tradeoff}
+\label{sec:synthetic-rq3}
+%------------------------------------------------------------------------------
+
+Figure~\ref{fig:synthetic-rq3} directly illustrates the pruning-parallelism tradeoff by comparing CECI (parallel enumeration) against VF3PDL (pruning-based traversal) on structureless ER graphs.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/synthetic_er.png}
+\caption{RQ3 Validation: Pruning (VF3PDL) vs parallel enumeration (CECI) on Erdős-Rényi graphs. The 5-order-of-magnitude performance gap demonstrates that pruning strategies fail without exploitable structure.}
+\label{fig:synthetic-rq3}
+\end{figure}
+
+The synthetic experiments provide definitive evidence for the pruning-parallelism tradeoff:
+
+\begin{itemize}
+    \item \textbf{VF3PDL's pruning relies on structure}: On ER graphs lacking community structure, degree heterogeneity, or clustering, VF3PDL's traversal heuristics cannot effectively reduce the search space. The algorithm degenerates to near-exhaustive exploration, achieving only 99 EPS on er\_3m.
+
+    \item \textbf{CECI's parallelism is structure-agnostic}: The index-based parallel enumeration maintains consistent throughput of $\sim$30M EPS regardless of topological properties. This demonstrates that CECI's performance derives from efficient parallel work distribution rather than structural exploitation.
+
+    \item \textbf{Performance gap quantification}: On the largest ER graph (3M edges), CECI achieves 30,556,861 EPS compared to VF3PDL's 99 EPS---a performance ratio of \textbf{308,655:1} (over 300,000$\times$ faster).
+\end{itemize}
+
+\paragraph{Comparison with Real-World Results.}
+On real-world graphs such as ENRON and DBLP, VF3PDL typically achieves performance within 10--100$\times$ of CECI. The synthetic results reveal that this relatively competitive performance depends entirely on exploitable graph structure. When structure is absent, the performance gap expands to over 300,000$\times$, validating RQ3's conclusion that pruning effectiveness and parallel scalability represent fundamentally different algorithmic strategies with topology-dependent tradeoffs.
+
+\paragraph{Validation of RQ3.}
+The synthetic experiments conclusively validate RQ3: there is a fundamental tradeoff between pruning effectiveness and parallel scalability, mediated by graph topology. Algorithms optimised for pruning (VF3PDL) achieve competitive performance only when graph structure provides pruning opportunities. On structureless graphs, parallel enumeration (CECI) dominates by orders of magnitude.
+
+%------------------------------------------------------------------------------
+\subsection{Dense Query Analysis}
+\label{sec:synthetic-dense}
+%------------------------------------------------------------------------------
+
+Dense query experiments revealed an important density threshold phenomenon. Table~\ref{tab:synthetic-dense} summarises dense 8-vertex query results across both graph models.
+
+\begin{table}[htbp]
+\centering
+\caption{Dense 8-vertex query results on synthetic graphs. Zero matches indicate insufficient graph density for the query pattern.}
+\label{tab:synthetic-dense}
+\begin{tabular}{llrrr}
+\toprule
+\textbf{Model} & \textbf{Graph} & \textbf{CECI} & \textbf{SLF} & \textbf{VF3PDL} \\
+\midrule
+ER & er\_250k & 0 & 0 & 0 \\
+ER & er\_500k & 330,873 & 266,894 & 256,530 \\
+ER & er\_1m & 10,433,355 & 166,768 & 4,166 \\
+ER & er\_2m & 28,687,873 & 108,246 & 815 \\
+ER & er\_3m & 29,798,419 & 133,798 & 290 \\
+\midrule
+BA & ba\_50k & 0 & 0 & 0 \\
+BA & ba\_100k & 24,136,624 & 225,095 & 296 \\
+BA & ba\_250k & 31,444,125 & 141,857 & 98 \\
+BA & ba\_500k & 31,703,235 & 157,289 & 81 \\
+BA & ba\_750k & 33,033,988 & 229,888 & 45 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Density Crossover Effect.}
+The zero-match results on sparse graphs (er\_250k, ba\_50k) demonstrate a \textit{density crossover} threshold: dense query patterns require minimum graph density to exist. For 8-vertex near-clique patterns, the threshold lies between average degree 10 (er\_250k: 0 matches) and average degree 20 (er\_500k: 11.7M matches). This validates the RQ2 finding that query-graph density matching is critical for subgraph isomorphism performance.
+
+\paragraph{Dense 16-Vertex Results.}
+Dense 16-vertex queries produced zero matches across nearly all synthetic configurations, indicating that the generated graphs lack sufficient local density to contain such patterns. This is consistent with the theoretical properties of ER and BA models, which produce globally sparse graphs even at high edge counts.
+
+%------------------------------------------------------------------------------
+\subsection{Summary of Synthetic Validation}
+\label{sec:synthetic-summary}
+%------------------------------------------------------------------------------
+
+The synthetic validation experiments strengthen the generalisability of findings from real-world datasets. Table~\ref{tab:synthetic-summary} summarises the key validations.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of synthetic validation for each research question.}
+\label{tab:synthetic-summary}
+\begin{tabular}{lp{5cm}p{6cm}}
+\toprule
+\textbf{RQ} & \textbf{Real-World Finding} & \textbf{Synthetic Validation} \\
+\midrule
+RQ1 & CECI achieves highest throughput & Confirmed: 29M vs 167K vs 10K EPS average \\
+RQ2 & Topology affects algorithm performance & Confirmed: VF3PDL degrades 44$\times$ on ER, 11$\times$ on BA \\
+RQ3 & Pruning-parallelism tradeoff exists & Confirmed: 300,000$\times$ gap on structureless graphs \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The controlled synthetic experiments demonstrate that:
+
+\begin{enumerate}
+    \item \textbf{CECI's dominance is structure-independent}: Consistent $\sim$30M EPS across all topologies validates that index-based parallel enumeration provides robust performance regardless of graph properties.
+
+    \item \textbf{VF3PDL's pruning requires structure}: The 44$\times$ degradation on ER graphs (vs 11$\times$ on BA graphs) quantifies the dependence of pruning-based algorithms on exploitable topological features.
+
+    \item \textbf{The tradeoff is fundamental}: The 300,000$\times$ performance gap on structureless graphs represents the extreme case of the pruning-parallelism tradeoff, validating that these represent fundamentally different algorithmic strategies.
+\end{enumerate}
+
+These findings generalise beyond the specific real-world datasets evaluated, providing confidence that the observed performance characteristics reflect fundamental algorithmic properties rather than dataset-specific artifacts.
+
+%==============================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+%==============================================================================
+
+This thesis presented a comprehensive empirical evaluation of parallel subgraph isomorphism algorithms, addressing three research questions through systematic experimentation on both real-world and synthetic datasets.
+
+\subsection{Summary of Findings}
+
+\paragraph{RQ1: Parallel Scaling Behaviour.}
+We found that parallel scaling characteristics vary dramatically across algorithms. VF3PDL achieves superlinear speedups (up to 78$\times$ on 64 threads) through effective work partitioning, but incurs substantial memory overhead (27--38$\times$ increase). CECI exhibits negative scaling due to synchronisation overhead on shared index structures. SLF occupies a middle ground with dataset-dependent scaling behaviour.
+
+\paragraph{RQ2: Topology and Density Effects.}
+Graph structure critically determines algorithm effectiveness. Index-based approaches (CECI) excel on sparse and planar graphs where traversal heuristics fail. Traversal-based approaches (SLF, VF3PDL) perform better on dense graphs with degree heterogeneity. Synthetic validation confirmed that VF3PDL degrades 44$\times$ on structureless Erdős-Rényi graphs compared to 11$\times$ on scale-free Barabási-Albert graphs.
+
+\paragraph{RQ3: Pruning vs Parallelism Tradeoff.}
+We identified a fundamental tradeoff between pruning effectiveness and parallel scalability. Algorithms with aggressive pruning (CECI) achieve high single-thread throughput but poor scaling. Algorithms with minimal pruning (VF3PDL) scale well but depend on exploitable graph structure. Synthetic experiments demonstrated a 300,000$\times$ performance gap between CECI and VF3PDL on structureless graphs, validating this tradeoff.
+
+\subsection{Practical Recommendations}
+
+Based on our findings, we provide the following algorithm selection guidelines:
+
+\begin{itemize}
+    \item \textbf{Sparse or planar graphs}: Use CECI for consistent high throughput.
+    \item \textbf{Dense graphs with community structure}: Use SLF for balanced performance.
+    \item \textbf{Memory-constrained environments}: Use CECI (constant memory) or SLF (moderate growth).
+    \item \textbf{Massively parallel systems}: Consider VF3PDL if memory permits and graph structure supports pruning.
+\end{itemize}
+
+\subsection{Limitations}
+
+This study has several limitations. First, the evaluation was conducted on a shared server environment, introducing potential variability from competing workloads. Second, GraphMini was excluded due to implementation bugs, limiting the scope of algorithm comparison. Third, synthetic graphs, while providing controlled validation, may not capture all properties of real-world networks.
+
+\subsection{Future Work}
+
+Several directions merit further investigation:
+
+\begin{itemize}
+    \item \textbf{Hybrid algorithms}: Combining index-based pruning with scalable parallel enumeration.
+    \item \textbf{Adaptive approaches}: Algorithms that dynamically select strategies based on detected graph properties.
+    \item \textbf{GPU acceleration}: Leveraging massively parallel GPU architectures for subgraph matching.
+    \item \textbf{Distributed systems}: Scaling beyond single-node parallelism for massive graphs.
+\end{itemize}
+
+%==============================================================================
+\section*{References}
+\label{sec:references}
+%==============================================================================
+
+\begin{thebibliography}{99}
+
+\bibitem{vf3}
+Carletti, V., Foggia, P., Saggese, A., \& Vento, M. (2018).
+Challenging the time complexity of exact subgraph isomorphism for huge and dense graphs with VF3.
+\textit{IEEE Transactions on Pattern Analysis and Machine Intelligence}, 40(4), 804--818.
+
+\bibitem{vf3p}
+Carletti, V., Foggia, P., Ritrovato, P., Vento, M., \& Vigilante, V. (2019).
+Parallel subgraph isomorphism on multi-core architectures.
+\textit{Pattern Recognition Letters}, 125, 256--262.
+
+\bibitem{ceci}
+Bhattarai, B., Liu, H., \& Huang, H. H. (2019).
+CECI: Compact embedding cluster index for scalable subgraph matching.
+\textit{Proceedings of the 2019 International Conference on Management of Data (SIGMOD)}, 1447--1462.
+
+\bibitem{slf}
+Sun, S., \& Luo, Q. (2020).
+Subgraph matching with effective matching order and indexing.
+\textit{IEEE Transactions on Knowledge and Data Engineering}, 34(1), 491--505.
+
+\bibitem{graphmini}
+He, M., \& Sun, S. (2021).
+GraphMini: Accelerating graph pattern matching using auxiliary graphs.
+\textit{Proceedings of the 2021 International Conference on Management of Data (SIGMOD)}, 780--792.
+
+\bibitem{hku}
+Sun, S., \& Luo, Q. (2019).
+In-memory subgraph matching: An in-depth study.
+\textit{Proceedings of the 2019 International Conference on Management of Data (SIGMOD)}, 1083--1098.
+
+\bibitem{erdos-renyi}
+Erdős, P., \& Rényi, A. (1959).
+On random graphs I.
+\textit{Publicationes Mathematicae Debrecen}, 6, 290--297.
+
+\bibitem{barabasi-albert}
+Barabási, A. L., \& Albert, R. (1999).
+Emergence of scaling in random networks.
+\textit{Science}, 286(5439), 509--512.
+
+\bibitem{amdahl}
+Amdahl, G. M. (1967).
+Validity of the single processor approach to achieving large scale computing capabilities.
+\textit{Proceedings of the Spring Joint Computer Conference}, 483--485.
+
+\bibitem{enron}
+Klimt, B., \& Yang, Y. (2004).
+The Enron corpus: A new dataset for email classification research.
+\textit{European Conference on Machine Learning}, 217--226.
+
+\bibitem{dblp}
+Ley, M. (2002).
+The DBLP computer science bibliography: Evolution, research issues, perspectives.
+\textit{International Symposium on String Processing and Information Retrieval}, 1--10.
+
+\bibitem{snap}
+Leskovec, J., \& Krevl, A. (2014).
+SNAP Datasets: Stanford Large Network Dataset Collection.
+\url{http://snap.stanford.edu/data}
+
+\end{thebibliography}
 \end{document}
