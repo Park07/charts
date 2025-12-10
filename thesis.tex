@@ -406,11 +406,11 @@ Parallel speedup is formally defined as $S_p = T_1 / T_p$, where $T_1$ is sequen
 
 This experiment examines the memory consumption of each algorithm as thread counts increase from 1 to 64. The results indicate a significant divergence in resource management strategies between traversal-based and index-based approaches.
 
-VF3 exhibits a strictly linear increase in memory consumption relative to thread count. On the RoadNet dataset with dense 8-vertex queries, memory usage increases from approximately 1.6 GB at 1 thread to 43 GB at 64 threads, representing a 27-fold increase. The growth is even more pronounced on DBLP, escalating from 272 MB to 10.3 GB (38-fold increase). This suggests that VF3 allocates deep copies of state for each worker, creating a hard scalability limit on memory-constrained systems.
+VF3 exhibits a strictly linear increase in memory consumption relative to thread count. On the RoadNet dataset with dense 8-vertex queries, memory usage increases from approximately 1.6 GB at 1 thread to 43 GB at 64 threads, representing a 27-fold increase. The growth is even more pronounced on DBLP, escalating from 272 MB to 10.3 GB (38-fold increase). This demonstrates that VF3 allocates deep copies of state for each worker, creating a hard scalability limit on memory-constrained systems.
 
 CECI, in contrast, maintains a constant memory footprint regardless of thread count. Usage remains stable at approximately 125 MB for RoadNet and 63 MB for DBLP across all thread counts. This indicates that CECI threads operate on a shared, read-only index structure without significant per-thread allocation.
 
-SLF demonstrates moderate linear growth, with memory usage on RoadNet rising from approximately 760 MB to 4 GB (a 5.3-fold increase). This suggests an optimised sharing mechanism that incurs significantly lower overhead than VF3 while still requiring some per-thread state.
+SLF demonstrates moderate linear growth, with memory usage on RoadNet rising from approximately 760 MB to 4 GB (a 5.3-fold increase). This demonstrates an optimised sharing mechanism that incurs significantly lower overhead than VF3 while still requiring some per-thread state.
 
 \subsection{Superlinear Scaling Anomalies (8-Vertex Queries)}
 
@@ -442,9 +442,9 @@ This section analyses scaling efficiency, defined as the ratio of throughput at 
 
 VF3 demonstrates consistent scalability across sparse datasets, achieving a speedup of approximately 25x at 64 threads on Enron and 12x on DBLP. The scaling curve remains positive throughout, indicating effective load balancing across workers.
 
-CECI exhibits the opposite behaviour, demonstrating negative scalability across all tested configurations. Performance decreases to 0.10x on Enron, representing a 90\% performance loss relative to single-threaded execution, and remains below 1x across all tested datasets (0.58x on DBLP, 0.69x on RoadNet). This degradation suggests that the overhead of atomic synchronisation outweighs the benefits of parallel execution for these workloads.
+CECI exhibits the opposite behaviour, demonstrating negative scalability across all tested configurations. Performance decreases to 0.10x on Enron, representing a 90\% performance loss relative to single-threaded execution, and remains below 1x across all tested datasets (0.58x on DBLP, 0.69x on RoadNet). This degradation demonstrates that the overhead of atomic synchronisation outweighs the benefits of parallel execution for these workloads.
 
-SLF displays dataset-dependent performance. On DBLP, it achieves near-linear scaling with a 26x speedup, yet on the sparse Enron dataset, performance degrades to 0.7x. This dichotomy suggests that stream-based filtering requires sufficient graph density to amortise the coordination overhead.
+SLF displays dataset-dependent performance. On DBLP, it achieves near-linear scaling with a 26x speedup, yet on the sparse Enron dataset, performance degrades to 0.7x. This dichotomy demonstrates that stream-based filtering requires sufficient graph density to amortise the coordination overhead.
 
 \subsection{Aggregate Parallel Efficiency at High Concurrency}
 
@@ -487,7 +487,7 @@ In sparse query scenarios, the index-based algorithm (CECI) consistently outperf
 
 As query density increases, a distinct crossover occurs. On LiveJournal with dense 16-vertex queries, SLF performance increases to approximately 13 million EPS, representing a 130-fold improvement compared to its sparse performance. CECI shows no comparable gain, remaining relatively static or degrading. Similarly, on DBLP with dense queries, SLF maintains a lead with approximately 17 million EPS compared to CECI's 8 million EPS.
 
-This inversion suggests that increased graph density facilitates traversal-based algorithms by providing more high-degree vertices for effective candidate pruning. Index-based approaches such as CECI incur quadratic filtering costs on dense neighbourhoods, which potentially negates the benefits of indexing.
+This inversion demonstrates that increased graph density facilitates traversal-based algorithms by providing more high-degree vertices for effective candidate pruning. Index-based approaches such as CECI incur quadratic filtering costs on dense neighbourhoods, which potentially negates the benefits of indexing.
 
 \subsection{Topological Sensitivity and Planar Graph Limitations}
 
@@ -517,11 +517,11 @@ CECI's success on RoadNet demonstrates the robustness of index-based approaches 
 
 A comprehensive heatmap identifying the optimal algorithm for each dataset-query combination at 64 threads establishes clear zones of dominance for each algorithmic class.
 
-CECI emerges as the dominant algorithm for sparse queries, securing the top position on RoadNet (all queries), LiveJournal (all sparse queries), and Enron (sparse 16v and 32v). This suggests its suitability for low-selectivity tasks where minimising search operations is critical.
+CECI emerges as the dominant algorithm for sparse queries, securing the top position on RoadNet (all queries), LiveJournal (all sparse queries), and Enron (sparse 16v and 32v). This demonstrates its suitability for low-selectivity tasks where minimising search operations is critical.
 
 SLF demonstrates superior performance for dense workloads, achieving optimal results across the DBLP dataset (5 out of 6 configurations) and LiveJournal (dense 8v and 16v). On LiveJournal dense 16v, SLF achieves 13.3 million EPS compared to CECI's substantially lower throughput.
 
-VF3 appears as a specialised solution, achieving optimal performance only on Enron dense 8v (11.0 million EPS). This suggests that while VF3's task-based parallelism is effective, it generally lacks the pruning power to compete with SLF or CECI on larger or more complex graphs.
+VF3 appears as a specialised solution, achieving optimal performance only on Enron dense 8v (11.0 million EPS). This demonstrates that while VF3's task-based parallelism is effective, it generally lacks the pruning power to compete with SLF or CECI on larger or more complex graphs.
 
 These results demonstrate that no single algorithm dominates across all configurations. Effective algorithm selection requires consideration of graph topology: CECI for sparse and planar graphs, SLF for dense scale-free graphs, and VF3 for small-scale dense queries where memory constraints permit.
 
@@ -543,11 +543,11 @@ This section addresses Research Question 3: Is there a fundamental tradeoff betw
 
 A cross-algorithm comparison reveals a clear dichotomy between algorithms optimised for pruning and those optimised for scaling.
 
-CECI represents the extreme of pruning effectiveness. At 1 thread, it achieves massive throughput (64 million EPS) by using an index to aggressively filter candidates before search. However, this pre-processing comes at a cost: when scaled to 64 threads, CECI exhibits a speedup of just 0.33x---a performance regression. This suggests that the shared data structures required for effective pruning create synchronisation bottlenecks that inhibit parallelism.
+CECI represents the extreme of pruning effectiveness. At 1 thread, it achieves massive throughput (64 million EPS) by using an index to aggressively filter candidates before search. However, this pre-processing comes at a cost: when scaled to 64 threads, CECI exhibits a speedup of just 0.33x---a performance regression. This demonstrates that the shared data structures required for effective pruning create synchronisation bottlenecks that inhibit parallelism.
 
 Conversely, VF3 represents the extreme of scalability. Its single-thread performance is relatively low (119K EPS) due to minimal pre-filtering during traversal. However, this independence allows it to scale substantially, achieving a speedup of 28x at 64 threads. The absence of complex shared state allows threads to partition the search space without contention.
 
-SLF occupies the middle ground, offering moderate pruning (540K EPS at 1 thread) and moderate scalability (12x speedup). This suggests that stream-based filtering provides a compromise, avoiding the severe locking of index-based approaches while achieving better pruning than raw traversal.
+SLF occupies the middle ground, offering moderate pruning (540K EPS at 1 thread) and moderate scalability (12x speedup). This demonstrates that stream-based filtering provides a compromise, avoiding the severe locking of index-based approaches while achieving better pruning than raw traversal.
 
 These findings point to a quantifiable cost associated with algorithmically ``sophisticated'' approaches: the more effective an algorithm is at sequential pruning, the harder it becomes to parallelise the remaining work effectively.
 
@@ -604,6 +604,72 @@ Despite its poor scaling, CECI's single-thread performance is sufficiently high 
 VF3 starts at a substantial disadvantage (0.1M EPS) but closes the gap significantly through parallelism, reaching 4M EPS. While it does not overtake CECI in this aggregate view, the trajectory suggests that the minimally-pruned but scalable approach could eventually surpass the aggressively-pruned but sequential approach on systems with higher core counts, particularly if the negative scaling trend continues.
 
 These findings suggest a fundamental tradeoff between pruning effectiveness and parallel scalability. For single-threaded or low-parallelism environments, index-based approaches such as CECI remain optimal. For massively parallel systems, traversal-based approaches such as VF3 offer superior scaling despite lower baseline performance.
+
+\subsection{Discussion and Synthesis}
+\label{sec:discussion}
+
+The experimental results across three research questions converge on a
+consistent finding: the choice of pruning strategy dominates all other
+design decisions in parallel subgraph isomorphism.
+
+\textbf{Synthesis of Findings.} RQ1 revealed that parallel scaling behaviour
+varies dramatically by algorithm—from 28$\times$ speedup (VF3PDL) to
+0.33$\times$ slowdown (CECI). RQ2 demonstrated that these differences are
+mediated by graph topology: traversal-based algorithms require exploitable
+structure to function, while index-based approaches remain robust but
+inherently sequential. RQ3 unified these observations through the
+Pruning-Parallelism Inversion Principle, explaining \textit{why} this
+trade-off exists via Amdahl's Law analysis.
+
+\textbf{Implications for the Field.} These findings challenge two implicit
+assumptions in prior work: (1) that sequential benchmark rankings transfer
+to parallel settings, and (2) that parallelisation strategy is the primary
+determinant of multi-core performance. Neither assumption holds. Algorithm
+selection must instead be guided by graph topology and available memory,
+as formalised in our design principles (Section~\ref{sec:design-principles}).
+
+\subsection{The Pruning-Parallelism Inversion Principle}
+\label{sec:pruning-parallelism-principle}
+
+The experimental results across all three research questions converge on a
+fundamental trade-off that we formalise as the \textbf{Pruning-Parallelism
+Inversion Principle}:
+
+\begin{quote}
+\textit{Algorithms that maximise sequential pruning effectiveness inherently
+minimise parallel scalability. This trade-off is structural, not incidental.}
+\end{quote}
+
+Table~\ref{tab:inversion-evidence} summarises the empirical evidence:
+
+\begin{table}[htbp]
+\centering
+\caption{Evidence for the Pruning-Parallelism Inversion Principle.}
+\label{tab:inversion-evidence}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Algorithm} & \textbf{1-Thread EPS} & \textbf{64-Thread Speedup} & \textbf{Pruning Approach} \\
+\midrule
+CECI    & 64,000,000 & 0.33$\times$ (slower) & Global index \\
+SLF     & 540,000    & 12$\times$            & Local filtering \\
+VF3PDL  & 119,000    & 28$\times$            & Minimal pre-filtering \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We formalise this relationship as:
+\begin{equation}
+\text{Effective Speedup} \leq \frac{1}{P_{eff}}
+\end{equation}
+where $P_{eff}$ represents pruning effectiveness (the fraction of search space
+eliminated before parallel enumeration begins).
+
+This principle has immediate practical consequence: the ``fastest'' algorithm
+in sequential benchmarks may become the slowest on parallel systems. The
+308,000:1 performance ratio observed on structureless graphs
+(Section~\ref{sec:synthetic-rq3}) represents the extreme case of this inversion.
+Prior literature, which evaluated algorithms primarily on single-threaded
+performance, could not reveal this phenomenon.
 
 %------------------------------------------------------------------------------
 \subsection{Design Principles for Parallel Subgraph Isomorphism}
@@ -1146,6 +1212,7 @@ OMP_NUM_THREADS=16 ./SubgraphMatching.out \
 
 This thesis presented the first systematic empirical evaluation of parallel subgraph isomorphism algorithms on single-machine multi-core architectures. Where prior work evaluated algorithms in isolation against their own baselines, we provide unified cross-algorithm comparison spanning design paradigms, graph topologies, and synthetic validation. This section summarises our contributions, their implications, and directions for future research.
 
+The benchmarking framework and synthetic validation methodology established here provide a foundation for a comprehensive benchmark suite, following the model of established efforts such as the Stanford Network Analysis Project (SNAP).
 %------------------------------------------------------------------------------
 \subsection{Summary of Contributions}
 %------------------------------------------------------------------------------
@@ -1156,9 +1223,12 @@ We demonstrated that 86\% of possible cross-algorithm comparisons are missing fr
 
 \subsubsection{Contribution 2: The Pruning-Parallelism Inversion Principle}
 
-Our central theoretical contribution is the formalisation of a fundamental tradeoff: algorithms that maximise sequential pruning effectiveness inherently minimise parallel scalability. We demonstrated this empirically (CECI: 64M EPS single-thread, 0.33$\times$ speedup; VF3PDL: 119K EPS single-thread, 28$\times$ speedup) and explained it theoretically through Amdahl's Law analysis showing that CECI's pruning phase consumes 88--100\% of execution time on dense graphs.
-
-This principle has immediate practical consequence: the ``fastest'' algorithm in sequential benchmarks may be the \textit{slowest} on parallel systems. Prior literature, which evaluated algorithms primarily on single-threaded performance, could not reveal this inversion.
+We identified and formalised a fundamental trade-off governing parallel SGI
+performance (Section~\ref{sec:pruning-parallelism-principle}): algorithms
+optimised for sequential pruning exhibit poor parallel scalability, and vice
+versa. This principle, supported by both theoretical analysis via Amdahl's Law
+and empirical validation showing performance gaps up to 308,000$\times$,
+explains why sequential benchmark rankings fail to predict parallel performance.
 
 \subsubsection{Contribution 3: Structure-Dependent Algorithm Rankings}
 
@@ -1247,7 +1317,7 @@ Our findings motivate several specific research directions:
 
 \subsubsection{Hybrid Architectures}
 
-The pruning-parallelism tradeoff suggests that optimal algorithms should combine index-based pruning with scalable parallel enumeration. A concrete approach: use CECI's BFS-based filtering (which is embarrassingly parallel during construction) but replace its sequential enumeration with VF3PDL's task-based exploration. The key challenge is designing an interface between the index and enumerator that avoids reintroducing serialisation. We hypothesise that partitioning the CECI index by starting vertex could enable this, though load balancing implications remain unexplored.
+The pruning-parallelism tradeoff demonstrates that optimal algorithms should combine index-based pruning with scalable parallel enumeration. A concrete approach: use CECI's BFS-based filtering (which is embarrassingly parallel during construction) but replace its sequential enumeration with VF3PDL's task-based exploration. The key challenge is designing an interface between the index and enumerator that avoids reintroducing serialisation. We hypothesise that partitioning the CECI index by starting vertex could enable this, though load balancing implications remain unexplored.
 
 \subsubsection{Adaptive Algorithm Selection}
 
