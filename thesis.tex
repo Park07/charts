@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper]{report}
+\documentclass[12pt,a4paper]{article}
 % Packages
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -22,11 +22,10 @@
 \usepackage{titlesec}
 \usetikzlibrary{positioning,shapes.geometric,arrows.meta}
 
-% Chapter formatting (no "Chapter X" prefix, just the title)
-\titleformat{\chapter}[display]
-  {\normalfont\Large\bfseries\centering}
-  {Chapter \thechapter}{0pt}{\LARGE}
-\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+% IEEE-style section formatting (left-aligned)
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
 
 % Section formatting
 \titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.5em}{}
@@ -136,7 +135,7 @@
 
 % Start page numbering at 37 and chapter at 5
 \setcounter{page}{37}
-\setcounter{chapter}{4}
+\setcounter{section}{4}
 
 \begin{document}
 
